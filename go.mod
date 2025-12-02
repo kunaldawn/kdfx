@@ -1,4 +1,4 @@
-module kimg
+module kdfx
 
 go 1.25.0
 

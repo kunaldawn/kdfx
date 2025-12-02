@@ -1,9 +1,9 @@
 package blend
 
 import (
-	"kimg/pkg/context"
-	"kimg/pkg/core"
-	"kimg/pkg/node"
+	"kdfx/pkg/context"
+	"kdfx/pkg/core"
+	"kdfx/pkg/node"
 )
 
 // BlendMode represents the blending mode used to combine textures.

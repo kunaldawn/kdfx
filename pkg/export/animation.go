@@ -5,8 +5,8 @@ import (
 	"io"
 	"time"
 
-	"kimg/pkg/context"
-	"kimg/pkg/node"
+	"kdfx/pkg/context"
+	"kdfx/pkg/node"
 )
 
 // Animation defines the interface for an animation.

@@ -1,9 +1,9 @@
 package shadertoy
 
 import (
-	"kimg/pkg/context"
-	"kimg/pkg/core"
-	"kimg/pkg/node"
+	"kdfx/pkg/context"
+	"kdfx/pkg/core"
+	"kdfx/pkg/node"
 )
 
 // ShaderToyNode allows running arbitrary GLSL code compatible with ShaderToy.

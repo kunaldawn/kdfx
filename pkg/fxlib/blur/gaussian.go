@@ -2,9 +2,9 @@ package blur
 
 import (
 	"fmt"
-	"kimg/pkg/context"
-	"kimg/pkg/core"
-	"kimg/pkg/node"
+	"kdfx/pkg/context"
+	"kdfx/pkg/core"
+	"kdfx/pkg/node"
 )
 
 const gaussianFS = `

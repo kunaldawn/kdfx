@@ -7,10 +7,10 @@ import (
 	"image/png"
 	"os"
 
-	"kimg/pkg/context"
-	"kimg/pkg/core"
-	"kimg/pkg/fxlib/blur"
-	colorfx "kimg/pkg/fxlib/color"
+	"kdfx/pkg/context"
+	"kdfx/pkg/core"
+	"kdfx/pkg/fxlib/blur"
+	colorfx "kdfx/pkg/fxlib/color"
 )
 
 // InputNode is a simple node that just provides a texture.

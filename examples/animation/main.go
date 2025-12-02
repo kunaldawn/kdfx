@@ -8,10 +8,10 @@ import (
 	"os"
 	"time"
 
-	"kimg/pkg/context"
-	"kimg/pkg/core"
-	"kimg/pkg/export"
-	colorfx "kimg/pkg/fxlib/color"
+	"kdfx/pkg/context"
+	"kdfx/pkg/core"
+	"kdfx/pkg/export"
+	colorfx "kdfx/pkg/fxlib/color"
 )
 
 // InputNode is a simple node that just provides a texture.
@@ -62,9 +62,9 @@ func main() {
 	bcNode.SetInput("u_texture", inputNode)
 
 	// 4. Setup Animation
-	anim := export.NewAnimation(2*time.Second, 30, func(t time.Duration) {
+	anim := export.NewAnimation(120*time.Second, 30, func(t time.Duration) {
 		// Animate brightness from 0.0 to 2.0
-		progress := float64(t) / float64(2*time.Second)
+		progress := float64(t) / float64(120*time.Second)
 		brightness := 2.0 * progress
 		bcNode.SetBrightness(float32(brightness))
 		bcNode.SetContrast(1.0)
