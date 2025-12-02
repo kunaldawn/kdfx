@@ -26,7 +26,10 @@ type Texture interface {
 	// GetID returns the OpenGL texture ID.
 	GetID() uint32
 	// GetSize returns the width and height of the texture.
+	// GetSize returns the width and height of the texture.
 	GetSize() (int, int)
+	// Upload updates the texture content from an image.RGBA.
+	Upload(img *image.RGBA)
 }
 
 type texture struct {
@@ -138,4 +141,10 @@ func (t *texture) Download() (*image.RGBA, error) {
 	}
 
 	return img, nil
+}
+
+func (t *texture) Upload(img *image.RGBA) {
+	t.Bind()
+	gles2.TexSubImage2D(gles2.TEXTURE_2D, 0, 0, 0, int32(t.width), int32(t.height), gles2.RGBA, gles2.UNSIGNED_BYTE, gles2.Ptr(img.Pix))
+	t.Unbind()
 }
