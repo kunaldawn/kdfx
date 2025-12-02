@@ -73,7 +73,7 @@ func main() {
 	mbNode.SetInput("u_texture", bcNode)
 
 	// 4. Setup Animation
-	duration := 5 * time.Second
+	duration := 60 * time.Second
 	anim := export.NewAnimation(duration, 30, func(t time.Duration) {
 		progress := float64(t) / float64(duration)
 
