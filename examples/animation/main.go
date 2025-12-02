@@ -55,7 +55,7 @@ func main() {
 	// 3. Build Graph
 	inputNode := &InputNode{Texture: inputTex}
 
-	bcNode, err := colorfx.NewBrightnessContrastNode(ctx, width, height)
+	bcNode, err := colorfx.NewColorAdjustmentNode(ctx, width, height)
 	if err != nil {
 		panic(err)
 	}
