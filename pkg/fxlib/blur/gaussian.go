@@ -37,8 +37,10 @@ void main() {
 }
 `
 
+// GaussianBlurNode applies a Gaussian blur to the input texture.
 type GaussianBlurNode interface {
 	node.Node
+	// SetRadius sets the blur radius.
 	SetRadius(r float32)
 }
 
@@ -50,6 +52,7 @@ type gaussianBlurNode struct {
 	radius  float32
 }
 
+// NewGaussianBlurNode creates a new Gaussian blur node.
 func NewGaussianBlurNode(ctx context.Context, width, height int) (GaussianBlurNode, error) {
 	base, err := node.NewBaseNode(ctx, width, height)
 	if err != nil {

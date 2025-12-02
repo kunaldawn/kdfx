@@ -6,7 +6,9 @@ import (
 
 // Quad represents a full-screen quad for rendering.
 type Quad interface {
+	// Draw renders the quad using the specified attribute locations.
 	Draw(positionAttrib, texCoordAttrib int32)
+	// Release frees the OpenGL resources associated with the quad.
 	Release()
 }
 
@@ -22,6 +24,7 @@ var quadVertices = []float32{
 	1.0, -1.0, 1.0, 0.0,
 }
 
+// NewQuad creates a new full-screen quad.
 func NewQuad() Quad {
 	var vbo uint32
 	gles2.GenBuffers(1, &vbo)

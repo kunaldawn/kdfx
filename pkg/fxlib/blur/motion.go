@@ -31,9 +31,12 @@ void main() {
 }
 `
 
+// MotionBlurNode applies a directional motion blur to the input texture.
 type MotionBlurNode interface {
 	node.Node
+	// SetAngle sets the angle of the blur in degrees.
 	SetAngle(degrees float32)
+	// SetStrength sets the strength/length of the blur.
 	SetStrength(s float32)
 }
 
@@ -43,6 +46,7 @@ type motionBlurNode struct {
 	strength float32
 }
 
+// NewMotionBlurNode creates a new motion blur node.
 func NewMotionBlurNode(ctx context.Context, width, height int) (MotionBlurNode, error) {
 	base, err := node.NewBaseNode(ctx, width, height)
 	if err != nil {

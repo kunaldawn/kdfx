@@ -30,7 +30,6 @@ type Node interface {
 
 	// SetShaderProgram sets the shader program for the node.
 	SetShaderProgram(program core.ShaderProgram)
-	// GetInput returns the input connected to a named slot.
 
 	// Process executes the node's operation if necessary.
 	// It should check IsDirty() and its inputs' IsDirty().
@@ -44,7 +43,9 @@ type Node interface {
 type Graph interface {
 	AddNode(name string, node Node)
 	Connect(sourceNodeName, targetNodeName, inputSlot string) error
+	// GetNode returns a node by name.
 	GetNode(name string) Node
+	// Release frees resources held by all nodes in the graph.
 	Release()
 }
 

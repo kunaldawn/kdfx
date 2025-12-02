@@ -6,6 +6,7 @@ import (
 	"kimg/pkg/node"
 )
 
+// BlendMode represents the blending mode used to combine textures.
 type BlendMode int
 
 const (
@@ -122,11 +123,16 @@ void main() {
 }
 `
 
+// BlendNode blends two input textures.
 type BlendNode interface {
 	node.Node
+	// SetFactor sets the opacity of the blend (0.0 to 1.0).
 	SetFactor(f float32)
+	// SetMode sets the blending mode.
 	SetMode(mode BlendMode)
+	// SetInput1 sets the base texture input.
 	SetInput1(input node.Input)
+	// SetInput2 sets the blend texture input.
 	SetInput2(input node.Input)
 }
 
@@ -134,6 +140,7 @@ type blendNode struct {
 	node.Node
 }
 
+// NewBlendNode creates a new blend node.
 func NewBlendNode(ctx context.Context, width, height int) (BlendNode, error) {
 	base, err := node.NewBaseNode(ctx, width, height)
 	if err != nil {

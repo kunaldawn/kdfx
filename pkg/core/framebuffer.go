@@ -6,10 +6,15 @@ import (
 	"github.com/go-gl/gl/v3.1/gles2"
 )
 
+// Framebuffer represents an OpenGL framebuffer object.
 type Framebuffer interface {
+	// Bind binds the framebuffer for rendering.
 	Bind()
+	// Unbind unbinds the framebuffer.
 	Unbind()
+	// Release frees the OpenGL resources associated with the framebuffer.
 	Release()
+	// GetTexture returns the texture attached to the framebuffer.
 	GetTexture() Texture
 }
 
@@ -18,6 +23,7 @@ type framebuffer struct {
 	texture Texture
 }
 
+// NewFramebuffer creates a new framebuffer with a texture attachment of the specified size.
 func NewFramebuffer(width, height int) (Framebuffer, error) {
 	var id uint32
 	gles2.GenFramebuffers(1, &id)

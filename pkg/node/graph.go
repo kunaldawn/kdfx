@@ -73,15 +73,9 @@ func (p *pipeline) Execute(outputNodeName string) error {
 }
 
 // Release releases all resources in the graph.
+// Release releases all resources in the graph.
 func (p *pipeline) Release() {
-	// We need to iterate over nodes. Graph interface doesn't expose iteration.
-	// But we can assume we own the graph or the graph provides a way.
-	// For now, let's add Release to Graph interface?
-	// Or just iterate if we can.
-	// Since `graph` is private, we can't cast to it safely if it was passed as interface.
-	// But here we are inside the package.
-	// Actually, `Pipeline` might not own the graph.
-	// But `Release` on pipeline usually implies releasing resources.
-	// Let's assume the user calls Release on nodes manually or we add Release to Graph.
-	// Let's add Release to Graph interface.
+	if p.graph != nil {
+		p.graph.Release()
+	}
 }

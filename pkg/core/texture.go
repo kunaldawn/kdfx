@@ -13,12 +13,19 @@ import (
 
 // Texture represents an OpenGL texture.
 type Texture interface {
+	// Bind binds the texture to the current context.
 	Bind()
+	// BindToUnit binds the texture to a specific texture unit.
 	BindToUnit(unit int)
+	// Unbind unbinds the texture.
 	Unbind()
+	// Release frees the OpenGL resources associated with the texture.
 	Release()
+	// Download reads the texture data back to an image.RGBA.
 	Download() (*image.RGBA, error)
+	// GetID returns the OpenGL texture ID.
 	GetID() uint32
+	// GetSize returns the width and height of the texture.
 	GetSize() (int, int)
 }
 

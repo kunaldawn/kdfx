@@ -62,20 +62,28 @@ void main() {
 }
 `
 
+// ColorAdjustmentNode applies various color adjustments to the input texture.
 type ColorAdjustmentNode interface {
 	node.Node
-	SetBrightness(b float32) // -1.0 to 1.0, default 0.0
-	SetContrast(c float32)   // 0.0 to >1.0, default 1.0
-	SetHue(h float32)        // -0.5 to 0.5 (rotates hue), default 0.0
-	SetSaturation(s float32) // 0.0 to >1.0, default 1.0
-	SetGamma(g float32)      // 0.1 to >1.0, default 1.0
-	SetExposure(e float32)   // 0.0 to >1.0, default 1.0
+	// SetBrightness sets the brightness (-1.0 to 1.0, default 0.0).
+	SetBrightness(b float32)
+	// SetContrast sets the contrast (0.0 to >1.0, default 1.0).
+	SetContrast(c float32)
+	// SetHue sets the hue rotation (-0.5 to 0.5, default 0.0).
+	SetHue(h float32)
+	// SetSaturation sets the saturation (0.0 to >1.0, default 1.0).
+	SetSaturation(s float32)
+	// SetGamma sets the gamma correction (0.1 to >1.0, default 1.0).
+	SetGamma(g float32)
+	// SetExposure sets the exposure (0.0 to >1.0, default 1.0).
+	SetExposure(e float32)
 }
 
 type colorAdjustmentNode struct {
 	node.Node
 }
 
+// NewColorAdjustmentNode creates a new color adjustment node.
 func NewColorAdjustmentNode(ctx context.Context, width, height int) (ColorAdjustmentNode, error) {
 	base, err := node.NewBaseNode(ctx, width, height)
 	if err != nil {

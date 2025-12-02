@@ -11,5 +11,6 @@ type Context interface {
 	Destroy()
 	// GetSize returns the width and height of the context/surface.
 	GetSize() (int, int)
+	// Viewport sets the viewport for the context.
 	Viewport(x, y, width, height int)
 }

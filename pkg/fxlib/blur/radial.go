@@ -33,9 +33,12 @@ void main() {
 }
 `
 
+// RadialBlurNode applies a radial (zoom) blur to the input texture.
 type RadialBlurNode interface {
 	node.Node
+	// SetCenter sets the center of the blur (0.0 to 1.0).
 	SetCenter(x, y float32)
+	// SetStrength sets the strength of the blur.
 	SetStrength(s float32)
 }
 
@@ -43,6 +46,7 @@ type radialBlurNode struct {
 	node.Node
 }
 
+// NewRadialBlurNode creates a new radial blur node.
 func NewRadialBlurNode(ctx context.Context, width, height int) (RadialBlurNode, error) {
 	base, err := node.NewBaseNode(ctx, width, height)
 	if err != nil {

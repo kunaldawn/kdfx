@@ -10,6 +10,7 @@ import (
 // It provides iResolution, iTime, iMouse (partial), iChannel0..3.
 type ShaderToyNode interface {
 	node.Node
+	// SetTime sets the current time for the shader (iTime).
 	SetTime(t float32)
 }
 
@@ -47,6 +48,7 @@ void main() {
 `
 }
 
+// NewShaderToyNode creates a new ShaderToy node with the provided GLSL code.
 func NewShaderToyNode(ctx context.Context, width, height int, code string) (ShaderToyNode, error) {
 	base, err := node.NewBaseNode(ctx, width, height)
 	if err != nil {

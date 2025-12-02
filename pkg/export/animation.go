@@ -11,6 +11,7 @@ import (
 
 // Animation defines the interface for an animation.
 type Animation interface {
+	// Render renders the animation to the provided writer using the specified node as output.
 	Render(ctx context.Context, node node.Node, writer io.Writer) error
 }
 

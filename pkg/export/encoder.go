@@ -9,7 +9,9 @@ import (
 
 // StreamEncoder defines an interface for streaming video encoding.
 type StreamEncoder interface {
+	// AddFrame adds an image frame to the video stream.
 	AddFrame(img *image.RGBA) error
+	// Close finishes the video stream and releases resources.
 	Close() error
 }
 

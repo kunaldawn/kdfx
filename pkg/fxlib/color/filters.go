@@ -6,6 +6,7 @@ import (
 	"kimg/pkg/node"
 )
 
+// FilterMode represents the type of color filter.
 type FilterMode int
 
 const (
@@ -51,16 +52,20 @@ void main() {
 }
 `
 
+// ColorFilterNode applies artistic color filters to the input texture.
 type ColorFilterNode interface {
 	node.Node
+	// SetMode sets the filter mode.
 	SetMode(mode FilterMode)
-	SetParam(p float32) // Threshold (0-1) or Levels (2+)
+	// SetParam sets the parameter for the filter (e.g., threshold or levels).
+	SetParam(p float32)
 }
 
 type colorFilterNode struct {
 	node.Node
 }
 
+// NewColorFilterNode creates a new color filter node.
 func NewColorFilterNode(ctx context.Context, width, height int) (ColorFilterNode, error) {
 	base, err := node.NewBaseNode(ctx, width, height)
 	if err != nil {

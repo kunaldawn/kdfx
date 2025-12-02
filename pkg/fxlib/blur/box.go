@@ -34,8 +34,10 @@ void main() {
 }
 `
 
+// BoxBlurNode applies a box blur to the input texture.
 type BoxBlurNode interface {
 	node.Node
+	// SetRadius sets the blur radius.
 	SetRadius(r float32)
 }
 
@@ -44,6 +46,7 @@ type boxBlurNode struct {
 	ctx context.Context
 }
 
+// NewBoxBlurNode creates a new box blur node.
 func NewBoxBlurNode(ctx context.Context, width, height int) (BoxBlurNode, error) {
 	base, err := node.NewBaseNode(ctx, width, height)
 	if err != nil {

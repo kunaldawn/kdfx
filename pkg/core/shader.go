@@ -7,6 +7,7 @@ import (
 	"github.com/go-gl/gl/v3.1/gles2"
 )
 
+// ShaderType represents the type of shader (Vertex or Fragment).
 type ShaderType uint32
 
 const (
@@ -14,6 +15,7 @@ const (
 	FragmentShader ShaderType = gles2.FRAGMENT_SHADER
 )
 
+// SimpleVS is a basic vertex shader that passes through position and texture coordinates.
 const SimpleVS = `
 attribute vec2 a_position;
 attribute vec2 a_texCoord;
@@ -24,8 +26,11 @@ void main() {
 }
 `
 
+// Shader represents a compiled OpenGL shader.
 type Shader interface {
+	// Release frees the OpenGL resources associated with the shader.
 	Release()
+	// GetID returns the OpenGL shader ID.
 	GetID() uint32
 }
 
@@ -34,6 +39,7 @@ type shader struct {
 	kind ShaderType
 }
 
+// NewShader compiles a new shader from source code.
 func NewShader(source string, shaderType ShaderType) (Shader, error) {
 	id := gles2.CreateShader(uint32(shaderType))
 
@@ -69,14 +75,23 @@ func (s *shader) GetID() uint32 {
 	return s.id
 }
 
+// ShaderProgram represents a linked OpenGL shader program.
 type ShaderProgram interface {
+	// Use activates the shader program.
 	Use()
+	// Release frees the OpenGL resources associated with the program.
 	Release()
+	// GetUniformLocation returns the location of a uniform variable.
 	GetUniformLocation(name string) int32
+	// SetUniform1i sets a single integer uniform.
 	SetUniform1i(name string, value int32)
+	// SetUniform1f sets a single float uniform.
 	SetUniform1f(name string, value float32)
+	// SetUniform2f sets a vec2 uniform.
 	SetUniform2f(name string, v0, v1 float32)
+	// SetUniform3f sets a vec3 uniform.
 	SetUniform3f(name string, v0, v1, v2 float32)
+	// GetAttribLocation returns the location of an attribute variable.
 	GetAttribLocation(name string) int32
 }
 
@@ -84,6 +99,7 @@ type shaderProgram struct {
 	id uint32
 }
 
+// NewShaderProgram links a vertex and fragment shader into a program.
 func NewShaderProgram(vertexSource, fragmentSource string) (ShaderProgram, error) {
 	vs, err := NewShader(vertexSource, VertexShader)
 	if err != nil {
