@@ -22,12 +22,15 @@ type Node interface {
 	SetInput(name string, input Input)
 	// GetInput returns the input connected to a named slot.
 	GetInput(name string) Input
+	// GetFramebuffer returns the node's output framebuffer.
+	GetFramebuffer() core.Framebuffer
 
 	// SetUniform sets a uniform value for the node's shader.
 	SetUniform(name string, value interface{})
 
 	// SetShaderProgram sets the shader program for the node.
 	SetShaderProgram(program core.ShaderProgram)
+	// GetInput returns the input connected to a named slot.
 
 	// Process executes the node's operation if necessary.
 	// It should check IsDirty() and its inputs' IsDirty().

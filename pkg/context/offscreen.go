@@ -68,3 +68,7 @@ func (c *offscreenContext) Destroy() {
 func (c *offscreenContext) GetSize() (int, int) {
 	return c.width, c.height
 }
+
+func (c *offscreenContext) Viewport(x, y, width, height int) {
+	gles2.Viewport(int32(x), int32(y), int32(width), int32(height))
+}

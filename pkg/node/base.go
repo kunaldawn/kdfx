@@ -37,6 +37,14 @@ func (n *baseNode) SetInput(name string, input Input) {
 	n.dirty = true
 }
 
+func (n *baseNode) GetInput(name string) Input {
+	return n.inputs[name]
+}
+
+func (n *baseNode) GetFramebuffer() core.Framebuffer {
+	return n.output
+}
+
 func (n *baseNode) SetUniform(name string, value interface{}) {
 	n.uniforms[name] = value
 	n.dirty = true
@@ -44,10 +52,6 @@ func (n *baseNode) SetUniform(name string, value interface{}) {
 
 func (n *baseNode) SetShaderProgram(program core.ShaderProgram) {
 	n.program = program
-}
-
-func (n *baseNode) GetInput(name string) Input {
-	return n.inputs[name]
 }
 
 func (n *baseNode) GetTexture() core.Texture {
