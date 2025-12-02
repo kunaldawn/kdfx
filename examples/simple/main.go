@@ -59,16 +59,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	bcNode.SetInput("image", inputNode)
-	bcNode.SetBrightness(0.2) // Increase brightness
+	bcNode.SetInput("u_texture", inputNode)
+	bcNode.SetBrightness(0.1) // Increase brightness
 	bcNode.SetContrast(1.2)   // Increase contrast
 
 	blurNode, err := filters.NewGaussianBlurNode(ctx, width, height)
 	if err != nil {
 		panic(err)
 	}
-	blurNode.SetInput("image", bcNode)
-	blurNode.SetRadius(5.0)
+	blurNode.SetInput("u_texture", bcNode)
+	blurNode.SetRadius(10.0)
 
 	// 4. Execute Pipeline
 	// We can just call Process on the last node

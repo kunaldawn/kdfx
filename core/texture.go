@@ -66,6 +66,11 @@ func (t *Texture) Bind() {
 	gles2.BindTexture(gles2.TEXTURE_2D, t.ID)
 }
 
+func (t *Texture) BindToUnit(unit int) {
+	gles2.ActiveTexture(gles2.TEXTURE0 + uint32(unit))
+	gles2.BindTexture(gles2.TEXTURE_2D, t.ID)
+}
+
 func (t *Texture) Unbind() {
 	gles2.BindTexture(gles2.TEXTURE_2D, 0)
 }

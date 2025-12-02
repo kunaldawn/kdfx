@@ -1,7 +1,6 @@
 package filters
 
 import (
-	"fmt"
 	"kimg/context"
 	"kimg/core"
 	"kimg/node"
@@ -39,10 +38,8 @@ void main() {
 
 type BrightnessContrastNode struct {
 	*node.BaseNode
-	Program    *core.ShaderProgram
 	Brightness float32
 	Contrast   float32
-	Quad       *core.Quad
 }
 
 func NewBrightnessContrastNode(ctx context.Context, width, height int) (*BrightnessContrastNode, error) {
@@ -57,69 +54,26 @@ func NewBrightnessContrastNode(ctx context.Context, width, height int) (*Brightn
 		return nil, err
 	}
 
-	return &BrightnessContrastNode{
-		BaseNode:   base,
-		Program:    program,
-		Brightness: 0.0,
-		Contrast:   1.0,
-		Quad:       core.NewQuad(),
-	}, nil
+	base.Program = program
+
+	n := &BrightnessContrastNode{
+		BaseNode: base,
+	}
+	n.SetUniform("u_brightness", float32(0.0))
+	n.SetUniform("u_contrast", float32(1.0))
+
+	return n, nil
 }
 
 func (n *BrightnessContrastNode) SetBrightness(b float32) {
-	if n.Brightness != b {
-		n.Brightness = b
-		n.Dirty = true
-	}
+	n.SetUniform("u_brightness", b)
 }
 
 func (n *BrightnessContrastNode) SetContrast(c float32) {
-	if n.Contrast != c {
-		n.Contrast = c
-		n.Dirty = true
-	}
-}
-
-func (n *BrightnessContrastNode) Process(ctx context.Context) error {
-	if err := n.ProcessInputs(ctx); err != nil {
-		return err
-	}
-
-	if !n.CheckDirty() {
-		return nil
-	}
-
-	input := n.GetInput("image")
-	if input == nil {
-		return fmt.Errorf("missing input 'image'")
-	}
-
-	tex := input.GetTexture()
-	if tex == nil {
-		return fmt.Errorf("input 'image' has no texture")
-	}
-
-	n.Output.Bind()
-	n.Program.Use()
-
-	tex.Bind()
-	n.Program.SetUniform1i("u_texture", 0)
-	n.Program.SetUniform1f("u_brightness", n.Brightness)
-	n.Program.SetUniform1f("u_contrast", n.Contrast)
-
-	posLoc := n.Program.GetAttribLocation("a_position")
-	texLoc := n.Program.GetAttribLocation("a_texCoord")
-
-	n.Quad.Draw(posLoc, texLoc)
-
-	tex.Unbind()
-	n.Output.Unbind()
-
-	return nil
+	n.SetUniform("u_contrast", c)
 }
 
 func (n *BrightnessContrastNode) Release() {
 	n.BaseNode.Release()
-	n.Program.Release()
-	n.Quad.Release()
+	// Program is released by BaseNode if we assigned it there.
 }

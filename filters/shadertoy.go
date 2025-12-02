@@ -10,8 +10,7 @@ import (
 // It provides iResolution, iTime, iMouse (partial), iChannel0..3.
 type ShaderToyNode struct {
 	*node.BaseNode
-	Program *core.ShaderProgram
-	Time    float32
+	Time float32
 }
 
 const shaderToyVS = `
@@ -62,73 +61,21 @@ func NewShaderToyNode(ctx context.Context, width, height int, code string) (*Sha
 		return nil, err
 	}
 
+	base.Program = program
+
+	// Set initial resolution
+	base.SetUniform("iResolution", []float32{float32(width), float32(height), 1.0})
+
 	return &ShaderToyNode{
 		BaseNode: base,
-		Program:  program,
 		Time:     0.0,
 	}, nil
 }
 
 func (n *ShaderToyNode) SetTime(t float32) {
-	if n.Time != t {
-		n.Time = t
-		n.Dirty = true
-	}
-}
-
-func (n *ShaderToyNode) Process(ctx context.Context) error {
-	if err := n.ProcessInputs(ctx); err != nil {
-		return err
-	}
-
-	if !n.CheckDirty() {
-		return nil
-	}
-
-	// Bind inputs to channels
-	// For now only iChannel0
-	input := n.GetInput("iChannel0")
-	if input != nil {
-		tex := input.GetTexture()
-		if tex != nil {
-			tex.Bind()
-			n.Program.SetUniform1i("iChannel0", 0)
-		}
-	}
-
-	n.Output.Bind()
-	n.Program.Use()
-
-	w, h := n.Context.GetSize()
-	n.Program.SetUniform3f("iResolution", float32(w), float32(h), 1.0)
-	n.Program.SetUniform1f("iTime", n.Time)
-
-	// Draw Quad
-	// We need a quad. BaseNode doesn't have one.
-	// We should probably move Quad to BaseNode or create one here.
-	// For now create one here.
-	q := core.NewQuad()
-	defer q.Release() // Inefficient to create/destroy every frame, but ok for now.
-
-	posLoc := n.Program.GetAttribLocation("a_position")
-	// texLoc := n.Program.GetAttribLocation("a_texCoord") // Not used in ShaderToy usually, but we might need to satisfy simpleVS
-
-	// simpleVS expects a_texCoord. If we don't enable it, it might crash or warn.
-	// Let's use a custom VS for ShaderToy that doesn't need texCoord if we want,
-	// or just pass it.
-	texLoc := n.Program.GetAttribLocation("a_texCoord")
-
-	q.Draw(posLoc, texLoc)
-
-	if input != nil {
-		input.GetTexture().Unbind()
-	}
-	n.Output.Unbind()
-
-	return nil
+	n.SetUniform("iTime", t)
 }
 
 func (n *ShaderToyNode) Release() {
 	n.BaseNode.Release()
-	n.Program.Release()
 }
