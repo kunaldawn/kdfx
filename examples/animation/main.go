@@ -11,7 +11,9 @@ import (
 	"kdfx/pkg/context"
 	"kdfx/pkg/core"
 	"kdfx/pkg/export"
+	"kdfx/pkg/fxlib/blur"
 	colorfx "kdfx/pkg/fxlib/color"
+	"math"
 )
 
 // InputNode is a simple node that just provides a texture.
@@ -19,9 +21,10 @@ type InputNode struct {
 	Texture core.Texture
 }
 
-func (n *InputNode) GetTexture() core.Texture          { return n.Texture }
-func (n *InputNode) IsDirty() bool                     { return false }
-func (n *InputNode) Process(ctx context.Context) error { return nil }
+func (n *InputNode) GetTexture() core.Texture                { return n.Texture }
+func (n *InputNode) IsDirty() bool                           { return false }
+func (n *InputNode) Process(ctx context.Context) error       { return nil }
+func (n *InputNode) SetInput(name string, input interface{}) {} // Dummy
 
 func main() {
 	width, height := 512, 512
@@ -55,19 +58,35 @@ func main() {
 	// 3. Build Graph
 	inputNode := &InputNode{Texture: inputTex}
 
+	// Color Adjustment Node
 	bcNode, err := colorfx.NewColorAdjustmentNode(ctx, width, height)
 	if err != nil {
 		panic(err)
 	}
 	bcNode.SetInput("u_texture", inputNode)
 
+	// Motion Blur Node
+	mbNode, err := blur.NewMotionBlurNode(ctx, width, height)
+	if err != nil {
+		panic(err)
+	}
+	mbNode.SetInput("u_texture", bcNode)
+
 	// 4. Setup Animation
-	anim := export.NewAnimation(120*time.Second, 30, func(t time.Duration) {
-		// Animate brightness from 0.0 to 2.0
-		progress := float64(t) / float64(120*time.Second)
-		brightness := 2.0 * progress
-		bcNode.SetBrightness(float32(brightness))
-		bcNode.SetContrast(1.0)
+	duration := 5 * time.Second
+	anim := export.NewAnimation(duration, 30, func(t time.Duration) {
+		progress := float64(t) / float64(duration)
+
+		// Animate brightness (pulse)
+		brightness := float32(math.Sin(progress * math.Pi * 2))
+		bcNode.SetBrightness(brightness)
+
+		// Animate Motion Blur (rotate angle, pulse strength)
+		angle := float32(progress * 360.0)
+		strength := float32(0.05 * (1.0 + math.Sin(progress*math.Pi*4)))
+
+		mbNode.SetAngle(angle)
+		mbNode.SetStrength(strength)
 	})
 
 	// 5. Render to MP4
@@ -80,7 +99,7 @@ func main() {
 	fmt.Println("Rendering animation to output.mp4...")
 	startTime := time.Now()
 
-	if err := anim.Render(ctx, bcNode, outFile); err != nil {
+	if err := anim.Render(ctx, mbNode, outFile); err != nil {
 		panic(err)
 	}
 
