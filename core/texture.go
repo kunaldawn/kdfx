@@ -12,17 +12,27 @@ import (
 )
 
 // Texture represents an OpenGL texture.
-type Texture struct {
-	ID     uint32
-	Width  int
-	Height int
+type Texture interface {
+	Bind()
+	BindToUnit(unit int)
+	Unbind()
+	Release()
+	Download() (*image.RGBA, error)
+	GetID() uint32
+	GetSize() (int, int)
+}
+
+type texture struct {
+	id     uint32
+	width  int
+	height int
 }
 
 // NewTexture creates a new empty texture.
-func NewTexture(width, height int) *Texture {
+func NewTexture(width, height int) Texture {
 	var id uint32
 	gles2.GenTextures(1, &id)
-	t := &Texture{ID: id, Width: width, Height: height}
+	t := &texture{id: id, width: width, height: height}
 	t.Bind()
 
 	// Set default parameters
@@ -39,7 +49,7 @@ func NewTexture(width, height int) *Texture {
 }
 
 // LoadTextureFromFile loads a texture from an image file.
-func LoadTextureFromFile(path string) (*Texture, error) {
+func LoadTextureFromFile(path string) (Texture, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -56,38 +66,45 @@ func LoadTextureFromFile(path string) (*Texture, error) {
 
 	t := NewTexture(rgba.Rect.Size().X, rgba.Rect.Size().Y)
 	t.Bind()
-	gles2.TexImage2D(gles2.TEXTURE_2D, 0, gles2.RGBA, int32(t.Width), int32(t.Height), 0, gles2.RGBA, gles2.UNSIGNED_BYTE, gles2.Ptr(rgba.Pix))
+	w, h := t.GetSize()
+	gles2.TexImage2D(gles2.TEXTURE_2D, 0, gles2.RGBA, int32(w), int32(h), 0, gles2.RGBA, gles2.UNSIGNED_BYTE, gles2.Ptr(rgba.Pix))
 	t.Unbind()
 
 	return t, nil
 }
 
-func (t *Texture) Bind() {
-	gles2.BindTexture(gles2.TEXTURE_2D, t.ID)
+func (t *texture) Bind() {
+	gles2.BindTexture(gles2.TEXTURE_2D, t.id)
 }
 
-func (t *Texture) BindToUnit(unit int) {
+func (t *texture) BindToUnit(unit int) {
 	gles2.ActiveTexture(gles2.TEXTURE0 + uint32(unit))
-	gles2.BindTexture(gles2.TEXTURE_2D, t.ID)
+	gles2.BindTexture(gles2.TEXTURE_2D, t.id)
 }
 
-func (t *Texture) Unbind() {
+func (t *texture) Unbind() {
 	gles2.BindTexture(gles2.TEXTURE_2D, 0)
 }
 
-func (t *Texture) Release() {
-	gles2.DeleteTextures(1, &t.ID)
+func (t *texture) Release() {
+	gles2.DeleteTextures(1, &t.id)
+}
+
+func (t *texture) GetID() uint32 {
+	return t.id
+}
+
+func (t *texture) GetSize() (int, int) {
+	return t.width, t.height
 }
 
 // Download reads the texture data back to an image.RGBA.
-// Note: This requires a framebuffer to read from in GLES2.
-// We can attach it to a temporary FBO or the current one.
-func (t *Texture) Download() (*image.RGBA, error) {
+func (t *texture) Download() (*image.RGBA, error) {
 	// Create a temporary FBO to read from
 	var fbo uint32
 	gles2.GenFramebuffers(1, &fbo)
 	gles2.BindFramebuffer(gles2.FRAMEBUFFER, fbo)
-	gles2.FramebufferTexture2D(gles2.FRAMEBUFFER, gles2.COLOR_ATTACHMENT0, gles2.TEXTURE_2D, t.ID, 0)
+	gles2.FramebufferTexture2D(gles2.FRAMEBUFFER, gles2.COLOR_ATTACHMENT0, gles2.TEXTURE_2D, t.id, 0)
 
 	status := gles2.CheckFramebufferStatus(gles2.FRAMEBUFFER)
 	if status != gles2.FRAMEBUFFER_COMPLETE {
@@ -96,25 +113,20 @@ func (t *Texture) Download() (*image.RGBA, error) {
 		return nil, fmt.Errorf("framebuffer incomplete: status %x", status)
 	}
 
-	pixels := make([]uint8, t.Width*t.Height*4)
-	gles2.ReadPixels(0, 0, int32(t.Width), int32(t.Height), gles2.RGBA, gles2.UNSIGNED_BYTE, gles2.Ptr(pixels))
+	pixels := make([]uint8, t.width*t.height*4)
+	gles2.ReadPixels(0, 0, int32(t.width), int32(t.height), gles2.RGBA, gles2.UNSIGNED_BYTE, gles2.Ptr(pixels))
 
 	gles2.BindFramebuffer(gles2.FRAMEBUFFER, 0)
 	gles2.DeleteFramebuffers(1, &fbo)
 
-	// Flip Y because OpenGL is bottom-left origin
-	// Actually, let's just return as is and let caller handle or flip here.
-	// Standard image.RGBA is top-left.
-	// We should flip it here to match standard image expectations.
-
-	rect := image.Rect(0, 0, t.Width, t.Height)
+	rect := image.Rect(0, 0, t.width, t.height)
 	img := image.NewRGBA(rect)
 
 	// Copy and flip Y
-	stride := t.Width * 4
-	for y := 0; y < t.Height; y++ {
+	stride := t.width * 4
+	for y := 0; y < t.height; y++ {
 		srcRow := pixels[y*stride : (y+1)*stride]
-		dstRow := img.Pix[(t.Height-1-y)*stride : (t.Height-y)*stride]
+		dstRow := img.Pix[(t.height-1-y)*stride : (t.height-y)*stride]
 		copy(dstRow, srcRow)
 	}
 

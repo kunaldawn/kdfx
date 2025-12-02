@@ -14,11 +14,11 @@ import (
 
 // InputNode is a simple node that just provides a texture.
 type InputNode struct {
-	Texture *core.Texture
+	Texture core.Texture
 }
 
-func (n *InputNode) GetTexture() *core.Texture { return n.Texture }
-func (n *InputNode) IsDirty() bool             { return false } // Static input
+func (n *InputNode) GetTexture() core.Texture { return n.Texture }
+func (n *InputNode) IsDirty() bool            { return false } // Static input
 
 func main() {
 	width, height := 512, 512
@@ -78,11 +78,7 @@ func main() {
 	}
 
 	// 5. Download Result
-	outTex := blurNode.GetTexture() // BaseNode.GetTexture() returns Output.Texture
-	// Wait, BaseNode.GetOutput() returns *core.Texture?
-	// In BaseNode: func (n *BaseNode) GetTexture() *core.Texture { return n.Output.Texture }
-	// So yes.
-
+	outTex := blurNode.GetTexture()
 	outImg, err := outTex.Download()
 	if err != nil {
 		panic(err)

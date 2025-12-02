@@ -5,8 +5,13 @@ import (
 )
 
 // Quad represents a full-screen quad for rendering.
-type Quad struct {
-	VBO uint32
+type Quad interface {
+	Draw(positionAttrib, texCoordAttrib int32)
+	Release()
+}
+
+type quad struct {
+	vbo uint32
 }
 
 var quadVertices = []float32{
@@ -17,17 +22,17 @@ var quadVertices = []float32{
 	1.0, -1.0, 1.0, 0.0,
 }
 
-func NewQuad() *Quad {
+func NewQuad() Quad {
 	var vbo uint32
 	gles2.GenBuffers(1, &vbo)
 	gles2.BindBuffer(gles2.ARRAY_BUFFER, vbo)
 	gles2.BufferData(gles2.ARRAY_BUFFER, len(quadVertices)*4, gles2.Ptr(quadVertices), gles2.STATIC_DRAW)
 	gles2.BindBuffer(gles2.ARRAY_BUFFER, 0)
-	return &Quad{VBO: vbo}
+	return &quad{vbo: vbo}
 }
 
-func (q *Quad) Draw(positionAttrib, texCoordAttrib int32) {
-	gles2.BindBuffer(gles2.ARRAY_BUFFER, q.VBO)
+func (q *quad) Draw(positionAttrib, texCoordAttrib int32) {
+	gles2.BindBuffer(gles2.ARRAY_BUFFER, q.vbo)
 
 	gles2.EnableVertexAttribArray(uint32(positionAttrib))
 	gles2.VertexAttribPointer(uint32(positionAttrib), 2, gles2.FLOAT, false, 4*4, gles2.PtrOffset(0))
@@ -43,6 +48,6 @@ func (q *Quad) Draw(positionAttrib, texCoordAttrib int32) {
 	gles2.BindBuffer(gles2.ARRAY_BUFFER, 0)
 }
 
-func (q *Quad) Release() {
-	gles2.DeleteBuffers(1, &q.VBO)
+func (q *quad) Release() {
+	gles2.DeleteBuffers(1, &q.vbo)
 }

@@ -6,43 +6,48 @@ import (
 	"time"
 
 	"kimg/context"
-	"kimg/core"
+	"kimg/node"
 )
 
-// Node represents a node in the processing graph.
-// We need an interface that provides the output texture and a way to process it.
-// This mirrors the structure seen in examples, where nodes have Process(ctx) and GetTexture().
-type Node interface {
-	Process(ctx context.Context) error
-	GetTexture() *core.Texture
+// Animation defines the interface for an animation.
+type Animation interface {
+	Render(ctx context.Context, node node.Node, writer io.Writer) error
 }
 
-// Animation defines the parameters for an animation.
-type Animation struct {
-	Duration time.Duration
-	FPS      int
-	Update   func(t time.Duration)
+type animation struct {
+	duration time.Duration
+	fps      int
+	update   func(t time.Duration)
+}
+
+// NewAnimation creates a new animation.
+func NewAnimation(duration time.Duration, fps int, update func(t time.Duration)) Animation {
+	return &animation{
+		duration: duration,
+		fps:      fps,
+		update:   update,
+	}
 }
 
 // Render renders the animation to the provided writer using the specified node as output.
-func (a *Animation) Render(ctx context.Context, node Node, writer io.Writer) error {
+func (a *animation) Render(ctx context.Context, node node.Node, writer io.Writer) error {
 	width, height := ctx.GetSize()
 
-	encoder, err := NewMP4StreamEncoder(writer, width, height, a.FPS)
+	encoder, err := NewMP4StreamEncoder(writer, width, height, a.fps)
 	if err != nil {
 		return fmt.Errorf("failed to create encoder: %w", err)
 	}
 	defer encoder.Close()
 
-	frameCount := int(a.Duration.Seconds() * float64(a.FPS))
-	dt := time.Second / time.Duration(a.FPS)
+	frameCount := int(a.duration.Seconds() * float64(a.fps))
+	dt := time.Second / time.Duration(a.fps)
 
 	for i := 0; i < frameCount; i++ {
 		currentTime := time.Duration(i) * dt
 
 		// Update scene state
-		if a.Update != nil {
-			a.Update(currentTime)
+		if a.update != nil {
+			a.update(currentTime)
 		}
 
 		// Process the graph

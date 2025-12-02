@@ -8,9 +8,13 @@ import (
 
 // ShaderToyNode allows running arbitrary GLSL code compatible with ShaderToy.
 // It provides iResolution, iTime, iMouse (partial), iChannel0..3.
-type ShaderToyNode struct {
-	*node.BaseNode
-	Time float32
+type ShaderToyNode interface {
+	node.Node
+	SetTime(t float32)
+}
+
+type shaderToyNode struct {
+	node.Node
 }
 
 const shaderToyVS = `
@@ -43,14 +47,14 @@ void main() {
 `
 }
 
-func NewShaderToyNode(ctx context.Context, width, height int, code string) (*ShaderToyNode, error) {
+func NewShaderToyNode(ctx context.Context, width, height int, code string) (ShaderToyNode, error) {
 	base, err := node.NewBaseNode(ctx, width, height)
 	if err != nil {
 		return nil, err
 	}
 
 	fullSource := wrapShaderToyCode(code)
-	program, err := core.NewShaderProgram(simpleVS, fullSource) // Use simpleVS for standard UVs if user code uses texture coordinates, OR use shaderToyVS if they use fragCoord?
+	program, err := core.NewShaderProgram(simpleVS, fullSource)
 	// ShaderToy uses mainImage(out vec4 fragColor, in vec2 fragCoord).
 	// fragCoord is in pixels (0.5 to resolution-0.5).
 	// gl_FragCoord provides this automatically in Fragment Shader!
@@ -61,21 +65,16 @@ func NewShaderToyNode(ctx context.Context, width, height int, code string) (*Sha
 		return nil, err
 	}
 
-	base.Program = program
+	base.SetShaderProgram(program)
 
 	// Set initial resolution
 	base.SetUniform("iResolution", []float32{float32(width), float32(height), 1.0})
 
-	return &ShaderToyNode{
-		BaseNode: base,
-		Time:     0.0,
+	return &shaderToyNode{
+		Node: base,
 	}, nil
 }
 
-func (n *ShaderToyNode) SetTime(t float32) {
+func (n *shaderToyNode) SetTime(t float32) {
 	n.SetUniform("iTime", t)
-}
-
-func (n *ShaderToyNode) Release() {
-	n.BaseNode.Release()
 }

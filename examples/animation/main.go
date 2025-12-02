@@ -16,10 +16,10 @@ import (
 
 // InputNode is a simple node that just provides a texture.
 type InputNode struct {
-	Texture *core.Texture
+	Texture core.Texture
 }
 
-func (n *InputNode) GetTexture() *core.Texture         { return n.Texture }
+func (n *InputNode) GetTexture() core.Texture          { return n.Texture }
 func (n *InputNode) IsDirty() bool                     { return false }
 func (n *InputNode) Process(ctx context.Context) error { return nil }
 
@@ -62,17 +62,13 @@ func main() {
 	bcNode.SetInput("u_texture", inputNode)
 
 	// 4. Setup Animation
-	anim := export.Animation{
-		Duration: 2 * time.Second,
-		FPS:      30,
-		Update: func(t time.Duration) {
-			// Animate brightness from 0.0 to 2.0
-			progress := float64(t) / float64(2*time.Second)
-			brightness := 2.0 * progress
-			bcNode.SetBrightness(float32(brightness))
-			bcNode.SetContrast(1.0)
-		},
-	}
+	anim := export.NewAnimation(2*time.Second, 30, func(t time.Duration) {
+		// Animate brightness from 0.0 to 2.0
+		progress := float64(t) / float64(2*time.Second)
+		brightness := 2.0 * progress
+		bcNode.SetBrightness(float32(brightness))
+		bcNode.SetContrast(1.0)
+	})
 
 	// 5. Render to MP4
 	outFile, err := os.Create("output.mp4")

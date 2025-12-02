@@ -13,15 +13,15 @@ func init() {
 	runtime.LockOSThread()
 }
 
-// OffscreenContext implements Context using a hidden GLFW window.
-type OffscreenContext struct {
+// offscreenContext implements Context using a hidden GLFW window.
+type offscreenContext struct {
 	window *glfw.Window
 	width  int
 	height int
 }
 
 // NewOffscreenContext creates a new offscreen context with the specified dimensions.
-func NewOffscreenContext(width, height int) (*OffscreenContext, error) {
+func NewOffscreenContext(width, height int) (Context, error) {
 	if err := glfw.Init(); err != nil {
 		return nil, fmt.Errorf("failed to initialize glfw: %v", err)
 	}
@@ -45,26 +45,26 @@ func NewOffscreenContext(width, height int) (*OffscreenContext, error) {
 		return nil, fmt.Errorf("failed to initialize gles2: %v", err)
 	}
 
-	return &OffscreenContext{
+	return &offscreenContext{
 		window: window,
 		width:  width,
 		height: height,
 	}, nil
 }
 
-func (c *OffscreenContext) MakeCurrent() {
+func (c *offscreenContext) MakeCurrent() {
 	c.window.MakeContextCurrent()
 }
 
-func (c *OffscreenContext) SwapBuffers() {
+func (c *offscreenContext) SwapBuffers() {
 	c.window.SwapBuffers()
 }
 
-func (c *OffscreenContext) Destroy() {
+func (c *offscreenContext) Destroy() {
 	c.window.Destroy()
 	glfw.Terminate()
 }
 
-func (c *OffscreenContext) GetSize() (int, int) {
+func (c *offscreenContext) GetSize() (int, int) {
 	return c.width, c.height
 }

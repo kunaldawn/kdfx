@@ -36,13 +36,17 @@ void main() {
 }
 `
 
-type BrightnessContrastNode struct {
-	*node.BaseNode
-	Brightness float32
-	Contrast   float32
+type BrightnessContrastNode interface {
+	node.Node
+	SetBrightness(b float32)
+	SetContrast(c float32)
 }
 
-func NewBrightnessContrastNode(ctx context.Context, width, height int) (*BrightnessContrastNode, error) {
+type brightnessContrastNode struct {
+	node.Node
+}
+
+func NewBrightnessContrastNode(ctx context.Context, width, height int) (BrightnessContrastNode, error) {
 	base, err := node.NewBaseNode(ctx, width, height)
 	if err != nil {
 		return nil, err
@@ -54,10 +58,10 @@ func NewBrightnessContrastNode(ctx context.Context, width, height int) (*Brightn
 		return nil, err
 	}
 
-	base.Program = program
+	base.SetShaderProgram(program)
 
-	n := &BrightnessContrastNode{
-		BaseNode: base,
+	n := &brightnessContrastNode{
+		Node: base,
 	}
 	n.SetUniform("u_brightness", float32(0.0))
 	n.SetUniform("u_contrast", float32(1.0))
@@ -65,15 +69,10 @@ func NewBrightnessContrastNode(ctx context.Context, width, height int) (*Brightn
 	return n, nil
 }
 
-func (n *BrightnessContrastNode) SetBrightness(b float32) {
+func (n *brightnessContrastNode) SetBrightness(b float32) {
 	n.SetUniform("u_brightness", b)
 }
 
-func (n *BrightnessContrastNode) SetContrast(c float32) {
+func (n *brightnessContrastNode) SetContrast(c float32) {
 	n.SetUniform("u_contrast", c)
-}
-
-func (n *BrightnessContrastNode) Release() {
-	n.BaseNode.Release()
-	// Program is released by BaseNode if we assigned it there.
 }

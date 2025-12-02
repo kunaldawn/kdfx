@@ -36,12 +36,17 @@ void main() {
 }
 `
 
-type GaussianBlurNode struct {
-	*node.BaseNode
-	Radius float32
+type GaussianBlurNode interface {
+	node.Node
+	SetRadius(r float32)
 }
 
-func NewGaussianBlurNode(ctx context.Context, width, height int) (*GaussianBlurNode, error) {
+type gaussianBlurNode struct {
+	node.Node
+	ctx context.Context
+}
+
+func NewGaussianBlurNode(ctx context.Context, width, height int) (GaussianBlurNode, error) {
 	base, err := node.NewBaseNode(ctx, width, height)
 	if err != nil {
 		return nil, err
@@ -53,21 +58,17 @@ func NewGaussianBlurNode(ctx context.Context, width, height int) (*GaussianBlurN
 		return nil, err
 	}
 
-	base.Program = program
+	base.SetShaderProgram(program)
 
-	return &GaussianBlurNode{
-		BaseNode: base,
-		Radius:   1.0,
+	return &gaussianBlurNode{
+		Node: base,
+		ctx:  ctx,
 	}, nil
 }
 
-func (n *GaussianBlurNode) SetRadius(r float32) {
+func (n *gaussianBlurNode) SetRadius(r float32) {
 	n.SetUniform("u_radius", r)
 	// We also need resolution.
-	w, h := n.Context.GetSize()
+	w, h := n.ctx.GetSize()
 	n.SetUniform("u_resolution", []float32{float32(w), float32(h)})
-}
-
-func (n *GaussianBlurNode) Release() {
-	n.BaseNode.Release()
 }

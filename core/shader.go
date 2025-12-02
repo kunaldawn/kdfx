@@ -14,12 +14,17 @@ const (
 	FragmentShader ShaderType = gles2.FRAGMENT_SHADER
 )
 
-type Shader struct {
-	ID   uint32
-	Type ShaderType
+type Shader interface {
+	Release()
+	GetID() uint32
 }
 
-func NewShader(source string, shaderType ShaderType) (*Shader, error) {
+type shader struct {
+	id   uint32
+	kind ShaderType
+}
+
+func NewShader(source string, shaderType ShaderType) (Shader, error) {
 	id := gles2.CreateShader(uint32(shaderType))
 
 	// Add default precision for ES 2.0 if not present
@@ -43,18 +48,33 @@ func NewShader(source string, shaderType ShaderType) (*Shader, error) {
 		return nil, fmt.Errorf("failed to compile shader: %v", log)
 	}
 
-	return &Shader{ID: id, Type: shaderType}, nil
+	return &shader{id: id, kind: shaderType}, nil
 }
 
-func (s *Shader) Release() {
-	gles2.DeleteShader(s.ID)
+func (s *shader) Release() {
+	gles2.DeleteShader(s.id)
 }
 
-type ShaderProgram struct {
-	ID uint32
+func (s *shader) GetID() uint32 {
+	return s.id
 }
 
-func NewShaderProgram(vertexSource, fragmentSource string) (*ShaderProgram, error) {
+type ShaderProgram interface {
+	Use()
+	Release()
+	GetUniformLocation(name string) int32
+	SetUniform1i(name string, value int32)
+	SetUniform1f(name string, value float32)
+	SetUniform2f(name string, v0, v1 float32)
+	SetUniform3f(name string, v0, v1, v2 float32)
+	GetAttribLocation(name string) int32
+}
+
+type shaderProgram struct {
+	id uint32
+}
+
+func NewShaderProgram(vertexSource, fragmentSource string) (ShaderProgram, error) {
 	vs, err := NewShader(vertexSource, VertexShader)
 	if err != nil {
 		return nil, fmt.Errorf("vertex shader error: %v", err)
@@ -68,8 +88,8 @@ func NewShaderProgram(vertexSource, fragmentSource string) (*ShaderProgram, erro
 	defer fs.Release()
 
 	id := gles2.CreateProgram()
-	gles2.AttachShader(id, vs.ID)
-	gles2.AttachShader(id, fs.ID)
+	gles2.AttachShader(id, vs.GetID())
+	gles2.AttachShader(id, fs.GetID())
 	gles2.LinkProgram(id)
 
 	var status int32
@@ -83,53 +103,53 @@ func NewShaderProgram(vertexSource, fragmentSource string) (*ShaderProgram, erro
 		return nil, fmt.Errorf("failed to link program: %v", log)
 	}
 
-	return &ShaderProgram{ID: id}, nil
+	return &shaderProgram{id: id}, nil
 }
 
-func (p *ShaderProgram) Use() {
-	gles2.UseProgram(p.ID)
+func (p *shaderProgram) Use() {
+	gles2.UseProgram(p.id)
 }
 
-func (p *ShaderProgram) Release() {
-	gles2.DeleteProgram(p.ID)
+func (p *shaderProgram) Release() {
+	gles2.DeleteProgram(p.id)
 }
 
-func (p *ShaderProgram) GetUniformLocation(name string) int32 {
+func (p *shaderProgram) GetUniformLocation(name string) int32 {
 	cstrs, free := gles2.Strs(name + "\x00")
 	defer free()
-	return gles2.GetUniformLocation(p.ID, *cstrs)
+	return gles2.GetUniformLocation(p.id, *cstrs)
 }
 
-func (p *ShaderProgram) SetUniform1i(name string, value int32) {
+func (p *shaderProgram) SetUniform1i(name string, value int32) {
 	loc := p.GetUniformLocation(name)
 	if loc != -1 {
 		gles2.Uniform1i(loc, value)
 	}
 }
 
-func (p *ShaderProgram) SetUniform1f(name string, value float32) {
+func (p *shaderProgram) SetUniform1f(name string, value float32) {
 	loc := p.GetUniformLocation(name)
 	if loc != -1 {
 		gles2.Uniform1f(loc, value)
 	}
 }
 
-func (p *ShaderProgram) SetUniform2f(name string, v0, v1 float32) {
+func (p *shaderProgram) SetUniform2f(name string, v0, v1 float32) {
 	loc := p.GetUniformLocation(name)
 	if loc != -1 {
 		gles2.Uniform2f(loc, v0, v1)
 	}
 }
 
-func (p *ShaderProgram) SetUniform3f(name string, v0, v1, v2 float32) {
+func (p *shaderProgram) SetUniform3f(name string, v0, v1, v2 float32) {
 	loc := p.GetUniformLocation(name)
 	if loc != -1 {
 		gles2.Uniform3f(loc, v0, v1, v2)
 	}
 }
 
-func (p *ShaderProgram) GetAttribLocation(name string) int32 {
+func (p *shaderProgram) GetAttribLocation(name string) int32 {
 	cstrs, free := gles2.Strs(name + "\x00")
 	defer free()
-	return gles2.GetAttribLocation(p.ID, *cstrs)
+	return gles2.GetAttribLocation(p.id, *cstrs)
 }
