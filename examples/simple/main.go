@@ -7,9 +7,10 @@ import (
 	"image/png"
 	"os"
 
-	"kimg/context"
-	"kimg/core"
-	"kimg/filters"
+	"kimg/pkg/context"
+	"kimg/pkg/core"
+	"kimg/pkg/fxlib/blur"
+	colorfx "kimg/pkg/fxlib/color"
 )
 
 // InputNode is a simple node that just provides a texture.
@@ -55,7 +56,7 @@ func main() {
 
 	inputNode := &InputNode{Texture: inputTex}
 
-	bcNode, err := filters.NewBrightnessContrastNode(ctx, width, height)
+	bcNode, err := colorfx.NewBrightnessContrastNode(ctx, width, height)
 	if err != nil {
 		panic(err)
 	}
@@ -63,7 +64,7 @@ func main() {
 	bcNode.SetBrightness(0.1) // Increase brightness
 	bcNode.SetContrast(1.2)   // Increase contrast
 
-	blurNode, err := filters.NewGaussianBlurNode(ctx, width, height)
+	blurNode, err := blur.NewGaussianBlurNode(ctx, width, height)
 	if err != nil {
 		panic(err)
 	}

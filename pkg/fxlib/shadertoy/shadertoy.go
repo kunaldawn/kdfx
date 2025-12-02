@@ -1,9 +1,9 @@
-package filters
+package shadertoy
 
 import (
-	"kimg/context"
-	"kimg/core"
-	"kimg/node"
+	"kimg/pkg/context"
+	"kimg/pkg/core"
+	"kimg/pkg/node"
 )
 
 // ShaderToyNode allows running arbitrary GLSL code compatible with ShaderToy.
@@ -54,7 +54,7 @@ func NewShaderToyNode(ctx context.Context, width, height int, code string) (Shad
 	}
 
 	fullSource := wrapShaderToyCode(code)
-	program, err := core.NewShaderProgram(simpleVS, fullSource)
+	program, err := core.NewShaderProgram(core.SimpleVS, fullSource)
 	// ShaderToy uses mainImage(out vec4 fragColor, in vec2 fragCoord).
 	// fragCoord is in pixels (0.5 to resolution-0.5).
 	// gl_FragCoord provides this automatically in Fragment Shader!

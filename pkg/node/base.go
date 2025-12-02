@@ -1,8 +1,8 @@
 package node
 
 import (
-	"kimg/context"
-	"kimg/core"
+	"kimg/pkg/context"
+	"kimg/pkg/core"
 )
 
 // baseNode implements common logic for Nodes.

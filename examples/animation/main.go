@@ -8,10 +8,10 @@ import (
 	"os"
 	"time"
 
-	"kimg/context"
-	"kimg/core"
-	"kimg/export"
-	"kimg/filters"
+	"kimg/pkg/context"
+	"kimg/pkg/core"
+	"kimg/pkg/export"
+	colorfx "kimg/pkg/fxlib/color"
 )
 
 // InputNode is a simple node that just provides a texture.
@@ -55,7 +55,7 @@ func main() {
 	// 3. Build Graph
 	inputNode := &InputNode{Texture: inputTex}
 
-	bcNode, err := filters.NewBrightnessContrastNode(ctx, width, height)
+	bcNode, err := colorfx.NewBrightnessContrastNode(ctx, width, height)
 	if err != nil {
 		panic(err)
 	}

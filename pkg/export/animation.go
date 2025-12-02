@@ -5,8 +5,8 @@ import (
 	"io"
 	"time"
 
-	"kimg/context"
-	"kimg/node"
+	"kimg/pkg/context"
+	"kimg/pkg/node"
 )
 
 // Animation defines the interface for an animation.

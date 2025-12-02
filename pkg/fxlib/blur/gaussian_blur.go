@@ -1,9 +1,9 @@
-package filters
+package blur
 
 import (
-	"kimg/context"
-	"kimg/core"
-	"kimg/node"
+	"kimg/pkg/context"
+	"kimg/pkg/core"
+	"kimg/pkg/node"
 )
 
 // Simple 9-tap gaussian blur for demonstration.
@@ -52,7 +52,7 @@ func NewGaussianBlurNode(ctx context.Context, width, height int) (GaussianBlurNo
 		return nil, err
 	}
 
-	program, err := core.NewShaderProgram(simpleVS, gaussianBlurFS)
+	program, err := core.NewShaderProgram(core.SimpleVS, gaussianBlurFS)
 	if err != nil {
 		base.Release()
 		return nil, err

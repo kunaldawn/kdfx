@@ -1,9 +1,9 @@
-package filters
+package color
 
 import (
-	"kimg/context"
-	"kimg/core"
-	"kimg/node"
+	"kimg/pkg/context"
+	"kimg/pkg/core"
+	"kimg/pkg/node"
 )
 
 const brightnessContrastFS = `
@@ -26,16 +26,6 @@ void main() {
 }
 `
 
-const simpleVS = `
-attribute vec2 a_position;
-attribute vec2 a_texCoord;
-varying vec2 v_texCoord;
-void main() {
-	gl_Position = vec4(a_position, 0.0, 1.0);
-	v_texCoord = a_texCoord;
-}
-`
-
 type BrightnessContrastNode interface {
 	node.Node
 	SetBrightness(b float32)
@@ -52,7 +42,7 @@ func NewBrightnessContrastNode(ctx context.Context, width, height int) (Brightne
 		return nil, err
 	}
 
-	program, err := core.NewShaderProgram(simpleVS, brightnessContrastFS)
+	program, err := core.NewShaderProgram(core.SimpleVS, brightnessContrastFS)
 	if err != nil {
 		base.Release()
 		return nil, err

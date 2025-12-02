@@ -2,7 +2,7 @@ package node
 
 import (
 	"fmt"
-	"kimg/context"
+	"kimg/pkg/context"
 )
 
 // graph represents a collection of nodes and their connections.
