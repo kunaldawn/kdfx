@@ -19,15 +19,15 @@ const (
 	ModeNone                             // Black/Transparent after end
 )
 
-// VideoNode represents a node that outputs video frames.
-type VideoNode interface {
+// VideoInputNode represents a node that outputs video frames.
+type VideoInputNode interface {
 	node.Node
 	SetMode(mode VideoPlaybackMode)
 	SetTargetDuration(d time.Duration) // For Stretch mode
 	SetTime(t time.Duration)           // Called by animation loop
 }
 
-type videoNode struct {
+type videoInputNode struct {
 	node.Node
 	decoder        StreamDecoder
 	texture        core.Texture
@@ -37,8 +37,8 @@ type videoNode struct {
 	currentTime    time.Duration
 }
 
-// NewVideoNode creates a new video node.
-func NewVideoNode(ctx context.Context, path string) (VideoNode, error) {
+// NewVideoInputNode creates a new video node.
+func NewVideoInputNode(ctx context.Context, path string) (VideoInputNode, error) {
 	decoder, err := NewStreamDecoder(path)
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func NewVideoNode(ctx context.Context, path string) (VideoNode, error) {
 		return nil, err
 	}
 
-	return &videoNode{
+	return &videoInputNode{
 		Node:    base,
 		decoder: decoder,
 		texture: tex,
@@ -63,19 +63,19 @@ func NewVideoNode(ctx context.Context, path string) (VideoNode, error) {
 	}, nil
 }
 
-func (n *videoNode) SetMode(mode VideoPlaybackMode) {
+func (n *videoInputNode) SetMode(mode VideoPlaybackMode) {
 	n.mode = mode
 }
 
-func (n *videoNode) SetTargetDuration(d time.Duration) {
+func (n *videoInputNode) SetTargetDuration(d time.Duration) {
 	n.targetDuration = d
 }
 
-func (n *videoNode) SetTime(t time.Duration) {
+func (n *videoInputNode) SetTime(t time.Duration) {
 	n.currentTime = t
 }
 
-func (n *videoNode) Process(ctx context.Context) error {
+func (n *videoInputNode) Process(ctx context.Context) error {
 	info := n.decoder.Info()
 	videoDuration := info.Duration
 	var videoTime time.Duration
@@ -131,11 +131,11 @@ func (n *videoNode) Process(ctx context.Context) error {
 	return nil
 }
 
-func (n *videoNode) GetTexture() core.Texture {
+func (n *videoInputNode) GetTexture() core.Texture {
 	return n.texture
 }
 
-func (n *videoNode) Release() {
+func (n *videoInputNode) Release() {
 	n.decoder.Close()
 	n.Node.Release()
 }

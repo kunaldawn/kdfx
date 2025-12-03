@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"kdfx/pkg/context"
-	"kdfx/pkg/export"
 	colorfx "kdfx/pkg/fxlib/color"
 	"kdfx/pkg/video"
 )
@@ -34,21 +33,21 @@ func main() {
 	defer ctx.Destroy()
 
 	// 1. Create Video Node
-	vNode, err := video.NewVideoNode(ctx, inputPath)
+	videoNode, err := video.NewVideoInputNode(ctx, inputPath)
 	if err != nil {
 		panic(err)
 	}
-	defer vNode.Release()
+	defer videoNode.Release()
 
 	// Set Loop Mode
-	vNode.SetMode(video.ModeLoop)
+	videoNode.SetMode(video.ModeLoop)
 
 	// 2. Apply Filter (Sepia)
 	filterNode, err := colorfx.NewColorFilterNode(ctx, width, height)
 	if err != nil {
 		panic(err)
 	}
-	filterNode.SetInput("u_texture", vNode)
+	filterNode.SetInput("u_texture", videoNode)
 	filterNode.SetMode(colorfx.FilterSepia)
 
 	// 3. Render Output
@@ -60,8 +59,8 @@ func main() {
 	}
 	defer outFile.Close()
 
-	anim := export.NewAnimation(outDuration, info.FPS, func(t time.Duration) {
-		vNode.SetTime(t)
+	anim := video.NewAnimation(outDuration, info.FPS, func(t time.Duration) {
+		videoNode.SetTime(t)
 	})
 
 	fmt.Println("Rendering video_out.mp4...")

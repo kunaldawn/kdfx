@@ -10,9 +10,9 @@ import (
 
 	"kdfx/pkg/context"
 	"kdfx/pkg/core"
-	"kdfx/pkg/export"
 	"kdfx/pkg/fxlib/blur"
 	colorfx "kdfx/pkg/fxlib/color"
+	"kdfx/pkg/video"
 	"math"
 )
 
@@ -74,7 +74,7 @@ func main() {
 
 	// 4. Setup Animation
 	duration := 60 * time.Second
-	anim := export.NewAnimation(duration, 30, func(t time.Duration) {
+	anim := video.NewAnimation(duration, 30, func(t time.Duration) {
 		progress := float64(t) / float64(duration)
 
 		// Animate brightness (pulse)
