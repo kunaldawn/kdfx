@@ -7,24 +7,24 @@ import (
 	"image/png"
 	"os"
 
-	"kdfx/pkg/context"
-	"kdfx/pkg/core"
-	"kdfx/pkg/fxlib/blur"
+	"kdfx/pkg/fxcontext"
+	"kdfx/pkg/fxcore"
+	"kdfx/pkg/fxlib/fxblur"
 )
 
 // InputNode is a simple node that just provides a texture.
 type InputNode struct {
-	Texture core.Texture
+	Texture fxcore.FXTexture
 }
 
-func (n *InputNode) GetTexture() core.Texture                { return n.Texture }
+func (n *InputNode) GetTexture() fxcore.FXTexture            { return n.Texture }
 func (n *InputNode) IsDirty() bool                           { return false }
-func (n *InputNode) Process(ctx context.Context) error       { return nil }
+func (n *InputNode) Process(ctx fxcontext.FXContext) error   { return nil }
 func (n *InputNode) SetInput(name string, input interface{}) {} // Dummy
 
 func main() {
 	width, height := 512, 512
-	ctx, err := context.NewOffscreenContext(width, height)
+	ctx, err := fxcontext.NewFXOffscreenContext(width, height)
 	if err != nil {
 		panic(err)
 	}
@@ -49,12 +49,12 @@ func main() {
 		}
 	}
 	saveImage("input.png", img)
-	inputTex, _ := core.LoadTextureFromFile("input.png")
+	inputTex, _ := fxcore.FXLoadTextureFromFile("input.png")
 	inputNode := &InputNode{Texture: inputTex}
 
 	// 2. Test Gaussian Blur
 	fmt.Println("Testing Gaussian Blur...")
-	gNode, err := blur.NewGaussianBlurNode(ctx, width, height)
+	gNode, err := fxblur.NewFXGaussianBlurNode(ctx, width, height)
 	if err != nil {
 		panic(err)
 	}
@@ -67,7 +67,7 @@ func main() {
 
 	// 3. Test Box Blur
 	fmt.Println("Testing Box Blur...")
-	bNode, err := blur.NewBoxBlurNode(ctx, width, height)
+	bNode, err := fxblur.NewFXBoxBlurNode(ctx, width, height)
 	if err != nil {
 		panic(err)
 	}
@@ -80,7 +80,7 @@ func main() {
 
 	// 4. Test Radial Blur
 	fmt.Println("Testing Radial Blur...")
-	rNode, err := blur.NewRadialBlurNode(ctx, width, height)
+	rNode, err := fxblur.NewFXRadialBlurNode(ctx, width, height)
 	if err != nil {
 		panic(err)
 	}
@@ -93,7 +93,7 @@ func main() {
 
 	// 5. Test Motion Blur
 	fmt.Println("Testing Motion Blur...")
-	mNode, err := blur.NewMotionBlurNode(ctx, width, height)
+	mNode, err := fxblur.NewFXMotionBlurNode(ctx, width, height)
 	if err != nil {
 		panic(err)
 	}
@@ -108,7 +108,7 @@ func main() {
 	fmt.Println("Done! Check output_*.png files.")
 }
 
-func mustDownload(t core.Texture) image.Image {
+func mustDownload(t fxcore.FXTexture) image.Image {
 	img, err := t.Download()
 	if err != nil {
 		panic(err)

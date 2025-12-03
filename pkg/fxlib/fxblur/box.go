@@ -1,12 +1,12 @@
-package blur
+package fxblur
 
 import (
-	"kdfx/pkg/context"
-	"kdfx/pkg/core"
-	"kdfx/pkg/node"
+	"kdfx/pkg/fxcontext"
+	"kdfx/pkg/fxcore"
+	"kdfx/pkg/fxnode"
 )
 
-const boxBlurFS = `
+const FXBoxBlurFS = `
 precision mediump float;
 varying vec2 v_texCoord;
 uniform sampler2D u_texture;
@@ -34,26 +34,26 @@ void main() {
 }
 `
 
-// BoxBlurNode applies a box blur to the input texture.
-type BoxBlurNode interface {
-	node.Node
+// FXBoxBlurNode applies a box blur to the input texture.
+type FXBoxBlurNode interface {
+	fxnode.FXNode
 	// SetRadius sets the blur radius.
 	SetRadius(r float32)
 }
 
-type boxBlurNode struct {
-	node.Node
-	ctx context.Context
+type fxBoxBlurNode struct {
+	fxnode.FXNode
+	ctx fxcontext.FXContext
 }
 
-// NewBoxBlurNode creates a new box blur node.
-func NewBoxBlurNode(ctx context.Context, width, height int) (BoxBlurNode, error) {
-	base, err := node.NewBaseNode(ctx, width, height)
+// NewFXBoxBlurNode creates a new box blur fxnode.
+func NewFXBoxBlurNode(ctx fxcontext.FXContext, width, height int) (FXBoxBlurNode, error) {
+	base, err := fxnode.NewFXBaseNode(ctx, width, height)
 	if err != nil {
 		return nil, err
 	}
 
-	program, err := core.NewShaderProgram(core.SimpleVS, boxBlurFS)
+	program, err := fxcore.NewFXShaderProgram(fxcore.FXSimpleVS, FXBoxBlurFS)
 	if err != nil {
 		base.Release()
 		return nil, err
@@ -61,13 +61,13 @@ func NewBoxBlurNode(ctx context.Context, width, height int) (BoxBlurNode, error)
 
 	base.SetShaderProgram(program)
 
-	return &boxBlurNode{
-		Node: base,
-		ctx:  ctx,
+	return &fxBoxBlurNode{
+		FXNode: base,
+		ctx:    ctx,
 	}, nil
 }
 
-func (n *boxBlurNode) SetRadius(r float32) {
+func (n *fxBoxBlurNode) SetRadius(r float32) {
 	n.SetUniform("u_radius", r)
 	w, h := n.ctx.GetSize()
 	n.SetUniform("u_resolution", []float32{float32(w), float32(h)})

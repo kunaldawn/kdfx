@@ -1,12 +1,12 @@
-package blur
+package fxblur
 
 import (
-	"kdfx/pkg/context"
-	"kdfx/pkg/core"
-	"kdfx/pkg/node"
+	"kdfx/pkg/fxcontext"
+	"kdfx/pkg/fxcore"
+	"kdfx/pkg/fxnode"
 )
 
-const radialBlurFS = `
+const FXRadialBlurFS = `
 precision mediump float;
 varying vec2 v_texCoord;
 uniform sampler2D u_texture;
@@ -33,27 +33,27 @@ void main() {
 }
 `
 
-// RadialBlurNode applies a radial (zoom) blur to the input texture.
-type RadialBlurNode interface {
-	node.Node
+// FXRadialBlurNode applies a radial (zoom) blur to the input texture.
+type FXRadialBlurNode interface {
+	fxnode.FXNode
 	// SetCenter sets the center of the blur (0.0 to 1.0).
 	SetCenter(x, y float32)
-	// SetStrength sets the strength of the blur.
+	// SetStrength sets the strength of the fxblur.
 	SetStrength(s float32)
 }
 
-type radialBlurNode struct {
-	node.Node
+type fxRadialBlurNode struct {
+	fxnode.FXNode
 }
 
-// NewRadialBlurNode creates a new radial blur node.
-func NewRadialBlurNode(ctx context.Context, width, height int) (RadialBlurNode, error) {
-	base, err := node.NewBaseNode(ctx, width, height)
+// NewFXRadialBlurNode creates a new radial blur fxnode.
+func NewFXRadialBlurNode(ctx fxcontext.FXContext, width, height int) (FXRadialBlurNode, error) {
+	base, err := fxnode.NewFXBaseNode(ctx, width, height)
 	if err != nil {
 		return nil, err
 	}
 
-	program, err := core.NewShaderProgram(core.SimpleVS, radialBlurFS)
+	program, err := fxcore.NewFXShaderProgram(fxcore.FXSimpleVS, FXRadialBlurFS)
 	if err != nil {
 		base.Release()
 		return nil, err
@@ -61,8 +61,8 @@ func NewRadialBlurNode(ctx context.Context, width, height int) (RadialBlurNode, 
 
 	base.SetShaderProgram(program)
 
-	n := &radialBlurNode{
-		Node: base,
+	n := &fxRadialBlurNode{
+		FXNode: base,
 	}
 	n.SetCenter(0.5, 0.5)
 	n.SetStrength(0.1)
@@ -70,10 +70,10 @@ func NewRadialBlurNode(ctx context.Context, width, height int) (RadialBlurNode, 
 	return n, nil
 }
 
-func (n *radialBlurNode) SetCenter(x, y float32) {
+func (n *fxRadialBlurNode) SetCenter(x, y float32) {
 	n.SetUniform("u_center", []float32{x, y})
 }
 
-func (n *radialBlurNode) SetStrength(s float32) {
+func (n *fxRadialBlurNode) SetStrength(s float32) {
 	n.SetUniform("u_strength", s)
 }

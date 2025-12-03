@@ -1,13 +1,13 @@
-package blur
+package fxblur
 
 import (
 	"fmt"
-	"kdfx/pkg/context"
-	"kdfx/pkg/core"
-	"kdfx/pkg/node"
+	"kdfx/pkg/fxcontext"
+	"kdfx/pkg/fxcore"
+	"kdfx/pkg/fxnode"
 )
 
-const gaussianFS = `
+const FXGaussianFS = `
 precision mediump float;
 varying vec2 v_texCoord;
 uniform sampler2D u_texture;
@@ -37,29 +37,29 @@ void main() {
 }
 `
 
-// GaussianBlurNode applies a Gaussian blur to the input texture.
-type GaussianBlurNode interface {
-	node.Node
+// FXGaussianBlurNode applies a Gaussian blur to the input texture.
+type FXGaussianBlurNode interface {
+	fxnode.FXNode
 	// SetRadius sets the blur radius.
 	SetRadius(r float32)
 }
 
-type gaussianBlurNode struct {
-	node.Node
-	tempFB  core.Framebuffer
-	ctx     context.Context
-	program core.ShaderProgram
+type fxGaussianBlurNode struct {
+	fxnode.FXNode
+	tempFB  fxcore.FXFramebuffer
+	ctx     fxcontext.FXContext
+	program fxcore.FXShaderProgram
 	radius  float32
 }
 
-// NewGaussianBlurNode creates a new Gaussian blur node.
-func NewGaussianBlurNode(ctx context.Context, width, height int) (GaussianBlurNode, error) {
-	base, err := node.NewBaseNode(ctx, width, height)
+// NewFXGaussianBlurNode creates a new Gaussian blur fxnode.
+func NewFXGaussianBlurNode(ctx fxcontext.FXContext, width, height int) (FXGaussianBlurNode, error) {
+	base, err := fxnode.NewFXBaseNode(ctx, width, height)
 	if err != nil {
 		return nil, err
 	}
 
-	program, err := core.NewShaderProgram(core.SimpleVS, gaussianFS)
+	program, err := fxcore.NewFXShaderProgram(fxcore.FXSimpleVS, FXGaussianFS)
 	if err != nil {
 		base.Release()
 		return nil, err
@@ -67,27 +67,27 @@ func NewGaussianBlurNode(ctx context.Context, width, height int) (GaussianBlurNo
 	base.SetShaderProgram(program)
 
 	// Create temporary framebuffer for two-pass blur
-	tempFB, err := core.NewFramebuffer(width, height)
+	tempFB, err := fxcore.NewFXFramebuffer(width, height)
 	if err != nil {
 		base.Release()
 		return nil, err
 	}
 
-	return &gaussianBlurNode{
-		Node:    base,
+	return &fxGaussianBlurNode{
+		FXNode:  base,
 		tempFB:  tempFB,
 		ctx:     ctx,
 		program: program,
 	}, nil
 }
 
-func (n *gaussianBlurNode) SetRadius(r float32) {
+func (n *fxGaussianBlurNode) SetRadius(r float32) {
 	n.SetUniform("u_radius", r)
 	n.radius = r
 }
 
 // Process overrides the default process to implement two-pass blur
-func (n *gaussianBlurNode) Process(ctx context.Context) error {
+func (n *fxGaussianBlurNode) Process(ctx fxcontext.FXContext) error {
 	if !n.IsDirty() {
 		return nil
 	}
@@ -99,7 +99,7 @@ func (n *gaussianBlurNode) Process(ctx context.Context) error {
 	}
 
 	// 2. Process Input if it's a Node
-	if inputNode, ok := input.(node.Node); ok {
+	if inputNode, ok := input.(fxnode.FXNode); ok {
 		if inputNode.IsDirty() {
 			if err := inputNode.Process(ctx); err != nil {
 				return err
@@ -109,7 +109,7 @@ func (n *gaussianBlurNode) Process(ctx context.Context) error {
 	inputTex := input.GetTexture()
 
 	// 3. Setup Quad
-	quad := core.NewQuad()
+	quad := fxcore.NewFXQuad()
 	defer quad.Release()
 
 	// Get Attrib Locations

@@ -1,4 +1,4 @@
-package video
+package fxvideo
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-// StreamDecoder decodes a video stream.
-type StreamDecoder interface {
+// FXStreamDecoder decodes a video stream.
+type FXStreamDecoder interface {
 	// Seek seeks to the specified timestamp.
 	// If t < current, restarts ffmpeg.
 	// If t > current, reads and discards frames.
@@ -17,25 +17,25 @@ type StreamDecoder interface {
 	// ReadFrame reads the next frame into the provided image buffer.
 	ReadFrame(img *image.RGBA) error
 	Close() error
-	Info() VideoInfo
+	Info() FXVideoInfo
 }
 
-type ffmpegStreamDecoder struct {
+type fxFfmpegStreamDecoder struct {
 	path        string
-	info        VideoInfo
+	info        FXVideoInfo
 	cmd         *exec.Cmd
 	stdout      io.ReadCloser
 	currentTime time.Duration
 }
 
-// NewStreamDecoder creates a new StreamDecoder for the given video file.
-func NewStreamDecoder(path string) (StreamDecoder, error) {
-	info, err := ProbeVideo(path)
+// NewFXStreamDecoder creates a new StreamDecoder for the given video file.
+func NewFXStreamDecoder(path string) (FXStreamDecoder, error) {
+	info, err := FXProbeVideo(path)
 	if err != nil {
 		return nil, err
 	}
 
-	decoder := &ffmpegStreamDecoder{
+	decoder := &fxFfmpegStreamDecoder{
 		path: path,
 		info: *info,
 	}
@@ -47,7 +47,7 @@ func NewStreamDecoder(path string) (StreamDecoder, error) {
 	return decoder, nil
 }
 
-func (d *ffmpegStreamDecoder) startFFmpeg(startTime time.Duration) error {
+func (d *fxFfmpegStreamDecoder) startFFmpeg(startTime time.Duration) error {
 	if d.cmd != nil {
 		d.Close()
 	}
@@ -81,7 +81,7 @@ func (d *ffmpegStreamDecoder) startFFmpeg(startTime time.Duration) error {
 	return nil
 }
 
-func (d *ffmpegStreamDecoder) Seek(t time.Duration) error {
+func (d *fxFfmpegStreamDecoder) Seek(t time.Duration) error {
 	// If seeking backwards, we MUST restart.
 	// If seeking forwards, we could skip frames, but restarting with -ss is often more efficient for large jumps.
 	// For small jumps, skipping might be better.
@@ -110,7 +110,7 @@ func (d *ffmpegStreamDecoder) Seek(t time.Duration) error {
 	return nil
 }
 
-func (d *ffmpegStreamDecoder) ReadFrame(img *image.RGBA) error {
+func (d *fxFfmpegStreamDecoder) ReadFrame(img *image.RGBA) error {
 	if img.Rect.Dx() != d.info.Width || img.Rect.Dy() != d.info.Height {
 		return fmt.Errorf("image dimension mismatch: expected %dx%d, got %dx%d", d.info.Width, d.info.Height, img.Rect.Dx(), img.Rect.Dy())
 	}
@@ -124,7 +124,7 @@ func (d *ffmpegStreamDecoder) ReadFrame(img *image.RGBA) error {
 	return nil
 }
 
-func (d *ffmpegStreamDecoder) Close() error {
+func (d *fxFfmpegStreamDecoder) Close() error {
 	if d.stdout != nil {
 		d.stdout.Close()
 	}
@@ -135,6 +135,6 @@ func (d *ffmpegStreamDecoder) Close() error {
 	return nil
 }
 
-func (d *ffmpegStreamDecoder) Info() VideoInfo {
+func (d *fxFfmpegStreamDecoder) Info() FXVideoInfo {
 	return d.info
 }

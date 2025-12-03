@@ -1,31 +1,31 @@
-package blend
+package fxblend
 
 import (
-	"kdfx/pkg/context"
-	"kdfx/pkg/core"
-	"kdfx/pkg/node"
+	"kdfx/pkg/fxcontext"
+	"kdfx/pkg/fxcore"
+	"kdfx/pkg/fxnode"
 )
 
-// BlendMode represents the blending mode used to combine textures.
-type BlendMode int
+// FXBlendMode represents the blending mode used to combine textures.
+type FXBlendMode int
 
 const (
-	BlendNormal BlendMode = iota
-	BlendAdd
-	BlendMultiply
-	BlendScreen
-	BlendOverlay
-	BlendDarken
-	BlendLighten
-	BlendColorDodge
-	BlendColorBurn
-	BlendHardLight
-	BlendSoftLight
-	BlendDifference
-	BlendExclusion
+	FXBlendNormal FXBlendMode = iota
+	FXBlendAdd
+	FXBlendMultiply
+	FXBlendScreen
+	FXBlendOverlay
+	FXBlendDarken
+	FXBlendLighten
+	FXBlendColorDodge
+	FXBlendColorBurn
+	FXBlendHardLight
+	FXBlendSoftLight
+	FXBlendDifference
+	FXBlendExclusion
 )
 
-const blendFS = `
+const FXBlendFS = `
 precision mediump float;
 varying vec2 v_texCoord;
 uniform sampler2D u_texture1; // Base
@@ -123,31 +123,31 @@ void main() {
 }
 `
 
-// BlendNode blends two input textures.
-type BlendNode interface {
-	node.Node
+// FXBlendNode blends two input textures.
+type FXBlendNode interface {
+	fxnode.FXNode
 	// SetFactor sets the opacity of the blend (0.0 to 1.0).
 	SetFactor(f float32)
 	// SetMode sets the blending mode.
-	SetMode(mode BlendMode)
+	SetMode(mode FXBlendMode)
 	// SetInput1 sets the base texture input.
-	SetInput1(input node.Input)
+	SetInput1(input fxnode.FXInput)
 	// SetInput2 sets the blend texture input.
-	SetInput2(input node.Input)
+	SetInput2(input fxnode.FXInput)
 }
 
-type blendNode struct {
-	node.Node
+type fxBlendNode struct {
+	fxnode.FXNode
 }
 
-// NewBlendNode creates a new blend node.
-func NewBlendNode(ctx context.Context, width, height int) (BlendNode, error) {
-	base, err := node.NewBaseNode(ctx, width, height)
+// NewFXBlendNode creates a new blend fxnode.
+func NewFXBlendNode(ctx fxcontext.FXContext, width, height int) (FXBlendNode, error) {
+	base, err := fxnode.NewFXBaseNode(ctx, width, height)
 	if err != nil {
 		return nil, err
 	}
 
-	program, err := core.NewShaderProgram(core.SimpleVS, blendFS)
+	program, err := fxcore.NewFXShaderProgram(fxcore.FXSimpleVS, FXBlendFS)
 	if err != nil {
 		base.Release()
 		return nil, err
@@ -155,27 +155,27 @@ func NewBlendNode(ctx context.Context, width, height int) (BlendNode, error) {
 
 	base.SetShaderProgram(program)
 
-	n := &blendNode{
-		Node: base,
+	n := &fxBlendNode{
+		FXNode: base,
 	}
 	n.SetFactor(1.0)
-	n.SetMode(BlendNormal)
+	n.SetMode(FXBlendNormal)
 
 	return n, nil
 }
 
-func (n *blendNode) SetFactor(f float32) {
+func (n *fxBlendNode) SetFactor(f float32) {
 	n.SetUniform("u_factor", f)
 }
 
-func (n *blendNode) SetMode(mode BlendMode) {
+func (n *fxBlendNode) SetMode(mode FXBlendMode) {
 	n.SetUniform("u_mode", int(mode))
 }
 
-func (n *blendNode) SetInput1(input node.Input) {
+func (n *fxBlendNode) SetInput1(input fxnode.FXInput) {
 	n.SetInput("u_texture1", input)
 }
 
-func (n *blendNode) SetInput2(input node.Input) {
+func (n *fxBlendNode) SetInput2(input fxnode.FXInput) {
 	n.SetInput("u_texture2", input)
 }

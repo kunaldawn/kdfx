@@ -1,4 +1,4 @@
-package video
+package fxvideo
 
 import (
 	"fmt"
@@ -7,24 +7,24 @@ import (
 	"os/exec"
 )
 
-// StreamEncoder defines an interface for streaming video encoding.
-type StreamEncoder interface {
+// FXStreamEncoder defines an interface for streaming video encoding.
+type FXStreamEncoder interface {
 	// AddFrame adds an image frame to the video stream.
 	AddFrame(img *image.RGBA) error
 	// Close finishes the video stream and releases resources.
 	Close() error
 }
 
-// mp4StreamEncoder implements StreamEncoder for MP4 output using ffmpeg.
-type mp4StreamEncoder struct {
+// fxMp4StreamEncoder implements StreamEncoder for MP4 output using ffmpeg.
+type fxMp4StreamEncoder struct {
 	cmd    *exec.Cmd
 	stdin  io.WriteCloser
 	width  int
 	height int
 }
 
-// NewMP4StreamEncoder creates a new MP4StreamEncoder that writes to the provided writer.
-func NewMP4StreamEncoder(writer io.Writer, width, height, fps int) (StreamEncoder, error) {
+// NewFXMP4StreamEncoder creates a new MP4StreamEncoder that writes to the provided writer.
+func NewFXMP4StreamEncoder(writer io.Writer, width, height, fps int) (FXStreamEncoder, error) {
 	// ffmpeg command to read raw rgba video from stdin and output mp4 to stdout
 	args := []string{
 		"-y", // Overwrite output files without asking
@@ -52,7 +52,7 @@ func NewMP4StreamEncoder(writer io.Writer, width, height, fps int) (StreamEncode
 		return nil, fmt.Errorf("failed to start ffmpeg: %w", err)
 	}
 
-	return &mp4StreamEncoder{
+	return &fxMp4StreamEncoder{
 		cmd:    cmd,
 		stdin:  stdin,
 		width:  width,
@@ -61,7 +61,7 @@ func NewMP4StreamEncoder(writer io.Writer, width, height, fps int) (StreamEncode
 }
 
 // AddFrame writes a single frame to the encoder.
-func (e *mp4StreamEncoder) AddFrame(img *image.RGBA) error {
+func (e *fxMp4StreamEncoder) AddFrame(img *image.RGBA) error {
 	if img.Rect.Dx() != e.width || img.Rect.Dy() != e.height {
 		return fmt.Errorf("frame dimension mismatch: expected %dx%d, got %dx%d", e.width, e.height, img.Rect.Dx(), img.Rect.Dy())
 	}
@@ -75,7 +75,7 @@ func (e *mp4StreamEncoder) AddFrame(img *image.RGBA) error {
 }
 
 // Close closes the input stream and waits for the encoding to finish.
-func (e *mp4StreamEncoder) Close() error {
+func (e *fxMp4StreamEncoder) Close() error {
 	if err := e.stdin.Close(); err != nil {
 		return fmt.Errorf("failed to close stdin: %w", err)
 	}

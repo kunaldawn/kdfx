@@ -8,27 +8,27 @@ import (
 	"os"
 	"time"
 
-	"kdfx/pkg/context"
-	"kdfx/pkg/core"
-	"kdfx/pkg/fxlib/blur"
-	colorfx "kdfx/pkg/fxlib/color"
-	"kdfx/pkg/video"
+	"kdfx/pkg/fxcontext"
+	"kdfx/pkg/fxcore"
+	"kdfx/pkg/fxlib/fxblur"
+	"kdfx/pkg/fxlib/fxcolor"
+	"kdfx/pkg/fxvideo"
 	"math"
 )
 
 // InputNode is a simple node that just provides a texture.
 type InputNode struct {
-	Texture core.Texture
+	Texture fxcore.FXTexture
 }
 
-func (n *InputNode) GetTexture() core.Texture                { return n.Texture }
+func (n *InputNode) GetTexture() fxcore.FXTexture            { return n.Texture }
 func (n *InputNode) IsDirty() bool                           { return false }
-func (n *InputNode) Process(ctx context.Context) error       { return nil }
+func (n *InputNode) Process(ctx fxcontext.FXContext) error   { return nil }
 func (n *InputNode) SetInput(name string, input interface{}) {} // Dummy
 
 func main() {
 	width, height := 512, 512
-	ctx, err := context.NewOffscreenContext(width, height)
+	ctx, err := fxcontext.NewFXOffscreenContext(width, height)
 	if err != nil {
 		panic(err)
 	}
@@ -50,7 +50,7 @@ func main() {
 	saveImage("input.png", img)
 
 	// 2. Upload to Texture
-	inputTex, err := core.LoadTextureFromFile("input.png")
+	inputTex, err := fxcore.FXLoadTextureFromFile("input.png")
 	if err != nil {
 		panic(err)
 	}
@@ -59,14 +59,14 @@ func main() {
 	inputNode := &InputNode{Texture: inputTex}
 
 	// Color Adjustment Node
-	bcNode, err := colorfx.NewColorAdjustmentNode(ctx, width, height)
+	bcNode, err := fxcolor.NewFXColorAdjustmentNode(ctx, width, height)
 	if err != nil {
 		panic(err)
 	}
 	bcNode.SetInput("u_texture", inputNode)
 
 	// Motion Blur Node
-	mbNode, err := blur.NewMotionBlurNode(ctx, width, height)
+	mbNode, err := fxblur.NewFXMotionBlurNode(ctx, width, height)
 	if err != nil {
 		panic(err)
 	}
@@ -74,7 +74,7 @@ func main() {
 
 	// 4. Setup Animation
 	duration := 60 * time.Second
-	anim := video.NewAnimation(duration, 30, func(t time.Duration) {
+	anim := fxvideo.NewFXAnimation(duration, 30, func(t time.Duration) {
 		progress := float64(t) / float64(duration)
 
 		// Animate brightness (pulse)

@@ -1,4 +1,4 @@
-package core
+package fxcore
 
 import (
 	"fmt"
@@ -7,16 +7,16 @@ import (
 	"github.com/go-gl/gl/v3.1/gles2"
 )
 
-// ShaderType represents the type of shader (Vertex or Fragment).
-type ShaderType uint32
+// FXShaderType represents the type of fxShader (Vertex or Fragment).
+type FXShaderType uint32
 
 const (
-	VertexShader   ShaderType = gles2.VERTEX_SHADER
-	FragmentShader ShaderType = gles2.FRAGMENT_SHADER
+	FXVertexShader   FXShaderType = gles2.VERTEX_SHADER
+	FXFragmentShader FXShaderType = gles2.FRAGMENT_SHADER
 )
 
-// SimpleVS is a basic vertex shader that passes through position and texture coordinates.
-const SimpleVS = `
+// FXSimpleVS is a basic vertex fxShader that passes through position and fxTexture coordinates.
+const FXSimpleVS = `
 attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
@@ -26,25 +26,25 @@ void main() {
 }
 `
 
-// Shader represents a compiled OpenGL shader.
-type Shader interface {
-	// Release frees the OpenGL resources associated with the shader.
+// FXShader represents a compiled OpenGL fxShader.
+type FXShader interface {
+	// Release frees the OpenGL resources associated with the fxShader.
 	Release()
-	// GetID returns the OpenGL shader ID.
+	// GetID returns the OpenGL fxShader ID.
 	GetID() uint32
 }
 
-type shader struct {
+type fxShader struct {
 	id   uint32
-	kind ShaderType
+	kind FXShaderType
 }
 
-// NewShader compiles a new shader from source code.
-func NewShader(source string, shaderType ShaderType) (Shader, error) {
+// NewFXShader compiles a new fxShader from source code.
+func NewFXShader(source string, shaderType FXShaderType) (FXShader, error) {
 	id := gles2.CreateShader(uint32(shaderType))
 
 	// Add default precision for ES 2.0 if not present
-	if shaderType == FragmentShader && !strings.Contains(source, "precision") {
+	if shaderType == FXFragmentShader && !strings.Contains(source, "precision") {
 		source = "precision mediump float;\n" + source
 	}
 
@@ -61,23 +61,23 @@ func NewShader(source string, shaderType ShaderType) (Shader, error) {
 		log := strings.Repeat("\x00", int(logLength+1))
 		gles2.GetShaderInfoLog(id, logLength, nil, gles2.Str(log))
 		gles2.DeleteShader(id)
-		return nil, fmt.Errorf("failed to compile shader: %v", log)
+		return nil, fmt.Errorf("failed to compile fxShader: %v", log)
 	}
 
-	return &shader{id: id, kind: shaderType}, nil
+	return &fxShader{id: id, kind: shaderType}, nil
 }
 
-func (s *shader) Release() {
+func (s *fxShader) Release() {
 	gles2.DeleteShader(s.id)
 }
 
-func (s *shader) GetID() uint32 {
+func (s *fxShader) GetID() uint32 {
 	return s.id
 }
 
-// ShaderProgram represents a linked OpenGL shader program.
-type ShaderProgram interface {
-	// Use activates the shader program.
+// FXShaderProgram represents a linked OpenGL fxShader program.
+type FXShaderProgram interface {
+	// Use activates the fxShader program.
 	Use()
 	// Release frees the OpenGL resources associated with the program.
 	Release()
@@ -95,21 +95,21 @@ type ShaderProgram interface {
 	GetAttribLocation(name string) int32
 }
 
-type shaderProgram struct {
+type fxShaderProgram struct {
 	id uint32
 }
 
-// NewShaderProgram links a vertex and fragment shader into a program.
-func NewShaderProgram(vertexSource, fragmentSource string) (ShaderProgram, error) {
-	vs, err := NewShader(vertexSource, VertexShader)
+// NewFXShaderProgram links a vertex and fragment fxShader into a program.
+func NewFXShaderProgram(vertexSource, fragmentSource string) (FXShaderProgram, error) {
+	vs, err := NewFXShader(vertexSource, FXVertexShader)
 	if err != nil {
-		return nil, fmt.Errorf("vertex shader error: %v", err)
+		return nil, fmt.Errorf("vertex fxShader error: %v", err)
 	}
 	defer vs.Release()
 
-	fs, err := NewShader(fragmentSource, FragmentShader)
+	fs, err := NewFXShader(fragmentSource, FXFragmentShader)
 	if err != nil {
-		return nil, fmt.Errorf("fragment shader error: %v", err)
+		return nil, fmt.Errorf("fragment fxShader error: %v", err)
 	}
 	defer fs.Release()
 
@@ -129,52 +129,52 @@ func NewShaderProgram(vertexSource, fragmentSource string) (ShaderProgram, error
 		return nil, fmt.Errorf("failed to link program: %v", log)
 	}
 
-	return &shaderProgram{id: id}, nil
+	return &fxShaderProgram{id: id}, nil
 }
 
-func (p *shaderProgram) Use() {
+func (p *fxShaderProgram) Use() {
 	gles2.UseProgram(p.id)
 }
 
-func (p *shaderProgram) Release() {
+func (p *fxShaderProgram) Release() {
 	gles2.DeleteProgram(p.id)
 }
 
-func (p *shaderProgram) GetUniformLocation(name string) int32 {
+func (p *fxShaderProgram) GetUniformLocation(name string) int32 {
 	cstrs, free := gles2.Strs(name + "\x00")
 	defer free()
 	return gles2.GetUniformLocation(p.id, *cstrs)
 }
 
-func (p *shaderProgram) SetUniform1i(name string, value int32) {
+func (p *fxShaderProgram) SetUniform1i(name string, value int32) {
 	loc := p.GetUniformLocation(name)
 	if loc != -1 {
 		gles2.Uniform1i(loc, value)
 	}
 }
 
-func (p *shaderProgram) SetUniform1f(name string, value float32) {
+func (p *fxShaderProgram) SetUniform1f(name string, value float32) {
 	loc := p.GetUniformLocation(name)
 	if loc != -1 {
 		gles2.Uniform1f(loc, value)
 	}
 }
 
-func (p *shaderProgram) SetUniform2f(name string, v0, v1 float32) {
+func (p *fxShaderProgram) SetUniform2f(name string, v0, v1 float32) {
 	loc := p.GetUniformLocation(name)
 	if loc != -1 {
 		gles2.Uniform2f(loc, v0, v1)
 	}
 }
 
-func (p *shaderProgram) SetUniform3f(name string, v0, v1, v2 float32) {
+func (p *fxShaderProgram) SetUniform3f(name string, v0, v1, v2 float32) {
 	loc := p.GetUniformLocation(name)
 	if loc != -1 {
 		gles2.Uniform3f(loc, v0, v1, v2)
 	}
 }
 
-func (p *shaderProgram) GetAttribLocation(name string) int32 {
+func (p *fxShaderProgram) GetAttribLocation(name string) int32 {
 	cstrs, free := gles2.Strs(name + "\x00")
 	defer free()
 	return gles2.GetAttribLocation(p.id, *cstrs)

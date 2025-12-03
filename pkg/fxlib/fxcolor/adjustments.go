@@ -1,12 +1,12 @@
-package color
+package fxcolor
 
 import (
-	"kdfx/pkg/context"
-	"kdfx/pkg/core"
-	"kdfx/pkg/node"
+	"kdfx/pkg/fxcontext"
+	"kdfx/pkg/fxcore"
+	"kdfx/pkg/fxnode"
 )
 
-const adjustmentsFS = `
+const FXAdjustmentsFS = `
 precision mediump float;
 varying vec2 v_texCoord;
 uniform sampler2D u_texture;
@@ -62,9 +62,9 @@ void main() {
 }
 `
 
-// ColorAdjustmentNode applies various color adjustments to the input texture.
-type ColorAdjustmentNode interface {
-	node.Node
+// FXColorAdjustmentNode applies various color adjustments to the input texture.
+type FXColorAdjustmentNode interface {
+	fxnode.FXNode
 	// SetBrightness sets the brightness (-1.0 to 1.0, default 0.0).
 	SetBrightness(b float32)
 	// SetContrast sets the contrast (0.0 to >1.0, default 1.0).
@@ -79,18 +79,18 @@ type ColorAdjustmentNode interface {
 	SetExposure(e float32)
 }
 
-type colorAdjustmentNode struct {
-	node.Node
+type fxColorAdjustmentNode struct {
+	fxnode.FXNode
 }
 
-// NewColorAdjustmentNode creates a new color adjustment node.
-func NewColorAdjustmentNode(ctx context.Context, width, height int) (ColorAdjustmentNode, error) {
-	base, err := node.NewBaseNode(ctx, width, height)
+// NewFXColorAdjustmentNode creates a new color adjustment fxnode.
+func NewFXColorAdjustmentNode(ctx fxcontext.FXContext, width, height int) (FXColorAdjustmentNode, error) {
+	base, err := fxnode.NewFXBaseNode(ctx, width, height)
 	if err != nil {
 		return nil, err
 	}
 
-	program, err := core.NewShaderProgram(core.SimpleVS, adjustmentsFS)
+	program, err := fxcore.NewFXShaderProgram(fxcore.FXSimpleVS, FXAdjustmentsFS)
 	if err != nil {
 		base.Release()
 		return nil, err
@@ -98,8 +98,8 @@ func NewColorAdjustmentNode(ctx context.Context, width, height int) (ColorAdjust
 
 	base.SetShaderProgram(program)
 
-	n := &colorAdjustmentNode{
-		Node: base,
+	n := &fxColorAdjustmentNode{
+		FXNode: base,
 	}
 
 	// Set defaults
@@ -113,26 +113,26 @@ func NewColorAdjustmentNode(ctx context.Context, width, height int) (ColorAdjust
 	return n, nil
 }
 
-func (n *colorAdjustmentNode) SetBrightness(b float32) {
+func (n *fxColorAdjustmentNode) SetBrightness(b float32) {
 	n.SetUniform("u_brightness", b)
 }
 
-func (n *colorAdjustmentNode) SetContrast(c float32) {
+func (n *fxColorAdjustmentNode) SetContrast(c float32) {
 	n.SetUniform("u_contrast", c)
 }
 
-func (n *colorAdjustmentNode) SetHue(h float32) {
+func (n *fxColorAdjustmentNode) SetHue(h float32) {
 	n.SetUniform("u_hue", h)
 }
 
-func (n *colorAdjustmentNode) SetSaturation(s float32) {
+func (n *fxColorAdjustmentNode) SetSaturation(s float32) {
 	n.SetUniform("u_saturation", s)
 }
 
-func (n *colorAdjustmentNode) SetGamma(g float32) {
+func (n *fxColorAdjustmentNode) SetGamma(g float32) {
 	n.SetUniform("u_gamma", g)
 }
 
-func (n *colorAdjustmentNode) SetExposure(e float32) {
+func (n *fxColorAdjustmentNode) SetExposure(e float32) {
 	n.SetUniform("u_exposure", e)
 }

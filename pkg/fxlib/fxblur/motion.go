@@ -1,13 +1,13 @@
-package blur
+package fxblur
 
 import (
-	"kdfx/pkg/context"
-	"kdfx/pkg/core"
-	"kdfx/pkg/node"
+	"kdfx/pkg/fxcontext"
+	"kdfx/pkg/fxcore"
+	"kdfx/pkg/fxnode"
 	"math"
 )
 
-const motionBlurFS = `
+const FXMotionBlurFS = `
 precision mediump float;
 varying vec2 v_texCoord;
 uniform sampler2D u_texture;
@@ -31,29 +31,29 @@ void main() {
 }
 `
 
-// MotionBlurNode applies a directional motion blur to the input texture.
-type MotionBlurNode interface {
-	node.Node
+// FXMotionBlurNode applies a directional motion blur to the input texture.
+type FXMotionBlurNode interface {
+	fxnode.FXNode
 	// SetAngle sets the angle of the blur in degrees.
 	SetAngle(degrees float32)
-	// SetStrength sets the strength/length of the blur.
+	// SetStrength sets the strength/length of the fxblur.
 	SetStrength(s float32)
 }
 
-type motionBlurNode struct {
-	node.Node
+type fxMotionBlurNode struct {
+	fxnode.FXNode
 	angle    float32
 	strength float32
 }
 
-// NewMotionBlurNode creates a new motion blur node.
-func NewMotionBlurNode(ctx context.Context, width, height int) (MotionBlurNode, error) {
-	base, err := node.NewBaseNode(ctx, width, height)
+// NewFXMotionBlurNode creates a new motion blur fxnode.
+func NewFXMotionBlurNode(ctx fxcontext.FXContext, width, height int) (FXMotionBlurNode, error) {
+	base, err := fxnode.NewFXBaseNode(ctx, width, height)
 	if err != nil {
 		return nil, err
 	}
 
-	program, err := core.NewShaderProgram(core.SimpleVS, motionBlurFS)
+	program, err := fxcore.NewFXShaderProgram(fxcore.FXSimpleVS, FXMotionBlurFS)
 	if err != nil {
 		base.Release()
 		return nil, err
@@ -61,8 +61,8 @@ func NewMotionBlurNode(ctx context.Context, width, height int) (MotionBlurNode, 
 
 	base.SetShaderProgram(program)
 
-	n := &motionBlurNode{
-		Node:     base,
+	n := &fxMotionBlurNode{
+		FXNode:   base,
 		angle:    0.0,
 		strength: 0.01,
 	}
@@ -71,17 +71,17 @@ func NewMotionBlurNode(ctx context.Context, width, height int) (MotionBlurNode, 
 	return n, nil
 }
 
-func (n *motionBlurNode) SetAngle(degrees float32) {
+func (n *fxMotionBlurNode) SetAngle(degrees float32) {
 	n.angle = degrees
 	n.updateVelocity()
 }
 
-func (n *motionBlurNode) SetStrength(s float32) {
+func (n *fxMotionBlurNode) SetStrength(s float32) {
 	n.strength = s
 	n.updateVelocity()
 }
 
-func (n *motionBlurNode) updateVelocity() {
+func (n *fxMotionBlurNode) updateVelocity() {
 	rad := float64(n.angle) * math.Pi / 180.0
 	vx := float32(math.Cos(rad)) * n.strength
 	vy := float32(math.Sin(rad)) * n.strength

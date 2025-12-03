@@ -1,4 +1,4 @@
-package video
+package fxvideo
 
 import (
 	"fmt"
@@ -8,16 +8,16 @@ import (
 	"time"
 )
 
-// VideoInfo contains metadata about a video file.
-type VideoInfo struct {
+// FXVideoInfo contains metadata about a video file.
+type FXVideoInfo struct {
 	Width    int
 	Height   int
 	FPS      int
 	Duration time.Duration
 }
 
-// ProbeVideo extracts metadata from a video file using ffprobe.
-func ProbeVideo(path string) (*VideoInfo, error) {
+// FXProbeVideo extracts metadata from a video file using ffprobe.
+func FXProbeVideo(path string) (*FXVideoInfo, error) {
 	// ffprobe -v error -select_streams v:0 -show_entries stream=width,height,r_frame_rate,duration -of csv=p=0 <path>
 	cmd := exec.Command("ffprobe",
 		"-v", "error",
@@ -59,7 +59,7 @@ func ProbeVideo(path string) (*VideoInfo, error) {
 		return nil, fmt.Errorf("invalid duration: %v", err)
 	}
 
-	return &VideoInfo{
+	return &FXVideoInfo{
 		Width:    width,
 		Height:   height,
 		FPS:      fps,

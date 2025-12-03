@@ -1,4 +1,4 @@
-package context
+package fxcontext
 
 import (
 	"fmt"
@@ -13,15 +13,15 @@ func init() {
 	runtime.LockOSThread()
 }
 
-// offscreenContext implements Context using a hidden GLFW window.
-type offscreenContext struct {
+// fxOffscreenContext implements FXContext using a hidden GLFW window.
+type fxOffscreenContext struct {
 	window *glfw.Window
 	width  int
 	height int
 }
 
-// NewOffscreenContext creates a new offscreen context with the specified dimensions.
-func NewOffscreenContext(width, height int) (Context, error) {
+// NewFXOffscreenContext creates a new offscreen context with the specified dimensions.
+func NewFXOffscreenContext(width, height int) (FXContext, error) {
 	if err := glfw.Init(); err != nil {
 		return nil, fmt.Errorf("failed to initialize glfw: %v", err)
 	}
@@ -45,30 +45,30 @@ func NewOffscreenContext(width, height int) (Context, error) {
 		return nil, fmt.Errorf("failed to initialize gles2: %v", err)
 	}
 
-	return &offscreenContext{
+	return &fxOffscreenContext{
 		window: window,
 		width:  width,
 		height: height,
 	}, nil
 }
 
-func (c *offscreenContext) MakeCurrent() {
+func (c *fxOffscreenContext) MakeCurrent() {
 	c.window.MakeContextCurrent()
 }
 
-func (c *offscreenContext) SwapBuffers() {
+func (c *fxOffscreenContext) SwapBuffers() {
 	c.window.SwapBuffers()
 }
 
-func (c *offscreenContext) Destroy() {
+func (c *fxOffscreenContext) Destroy() {
 	c.window.Destroy()
 	glfw.Terminate()
 }
 
-func (c *offscreenContext) GetSize() (int, int) {
+func (c *fxOffscreenContext) GetSize() (int, int) {
 	return c.width, c.height
 }
 
-func (c *offscreenContext) Viewport(x, y, width, height int) {
+func (c *fxOffscreenContext) Viewport(x, y, width, height int) {
 	gles2.Viewport(int32(x), int32(y), int32(width), int32(height))
 }

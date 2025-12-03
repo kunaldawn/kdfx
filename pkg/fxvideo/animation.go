@@ -1,40 +1,40 @@
-package video
+package fxvideo
 
 import (
 	"fmt"
 	"io"
 	"time"
 
-	"kdfx/pkg/context"
-	"kdfx/pkg/node"
+	"kdfx/pkg/fxcontext"
+	"kdfx/pkg/fxnode"
 )
 
-// Animation defines the interface for an animation.
-type Animation interface {
-	// Render renders the animation to the provided writer using the specified node as output.
-	Render(ctx context.Context, node node.Node, writer io.Writer) error
+// FXAnimation defines the interface for an fxAnimation.
+type FXAnimation interface {
+	// Render renders the fxAnimation to the provided writer using the specified node as output.
+	Render(ctx fxcontext.FXContext, node fxnode.FXNode, writer io.Writer) error
 }
 
-type animation struct {
+type fxAnimation struct {
 	duration time.Duration
 	fps      int
 	update   func(t time.Duration)
 }
 
-// NewAnimation creates a new animation.
-func NewAnimation(duration time.Duration, fps int, update func(t time.Duration)) Animation {
-	return &animation{
+// NewFXAnimation creates a new fxAnimation.
+func NewFXAnimation(duration time.Duration, fps int, update func(t time.Duration)) FXAnimation {
+	return &fxAnimation{
 		duration: duration,
 		fps:      fps,
 		update:   update,
 	}
 }
 
-// Render renders the animation to the provided writer using the specified node as output.
-func (a *animation) Render(ctx context.Context, node node.Node, writer io.Writer) error {
+// Render renders the fxAnimation to the provided writer using the specified node as output.
+func (a *fxAnimation) Render(ctx fxcontext.FXContext, node fxnode.FXNode, writer io.Writer) error {
 	width, height := ctx.GetSize()
 
-	encoder, err := NewMP4StreamEncoder(writer, width, height, a.fps)
+	encoder, err := NewFXMP4StreamEncoder(writer, width, height, a.fps)
 	if err != nil {
 		return fmt.Errorf("failed to create encoder: %w", err)
 	}

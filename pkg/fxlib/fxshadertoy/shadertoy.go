@@ -1,24 +1,24 @@
-package shadertoy
+package fxshadertoy
 
 import (
-	"kdfx/pkg/context"
-	"kdfx/pkg/core"
-	"kdfx/pkg/node"
+	"kdfx/pkg/fxcontext"
+	"kdfx/pkg/fxcore"
+	"kdfx/pkg/fxnode"
 )
 
-// ShaderToyNode allows running arbitrary GLSL code compatible with ShaderToy.
+// FXShaderToyNode allows running arbitrary GLSL code compatible with ShaderToy.
 // It provides iResolution, iTime, iMouse (partial), iChannel0..3.
-type ShaderToyNode interface {
-	node.Node
+type FXShaderToyNode interface {
+	fxnode.FXNode
 	// SetTime sets the current time for the shader (iTime).
 	SetTime(t float32)
 }
 
-type shaderToyNode struct {
-	node.Node
+type fxShadertoyNode struct {
+	fxnode.FXNode
 }
 
-const shaderToyVS = `
+const FXShaderToyVS = `
 attribute vec2 a_position;
 varying vec2 fragCoord;
 uniform vec2 iResolution;
@@ -48,15 +48,15 @@ void main() {
 `
 }
 
-// NewShaderToyNode creates a new ShaderToy node with the provided GLSL code.
-func NewShaderToyNode(ctx context.Context, width, height int, code string) (ShaderToyNode, error) {
-	base, err := node.NewBaseNode(ctx, width, height)
+// NewFXShaderToyNode creates a new ShaderToy node with the provided GLSL code.
+func NewFXShaderToyNode(ctx fxcontext.FXContext, width, height int, code string) (FXShaderToyNode, error) {
+	base, err := fxnode.NewFXBaseNode(ctx, width, height)
 	if err != nil {
 		return nil, err
 	}
 
 	fullSource := wrapShaderToyCode(code)
-	program, err := core.NewShaderProgram(core.SimpleVS, fullSource)
+	program, err := fxcore.NewFXShaderProgram(fxcore.FXSimpleVS, fullSource)
 	// ShaderToy uses mainImage(out vec4 fragColor, in vec2 fragCoord).
 	// fragCoord is in pixels (0.5 to resolution-0.5).
 	// gl_FragCoord provides this automatically in Fragment Shader!
@@ -72,11 +72,11 @@ func NewShaderToyNode(ctx context.Context, width, height int, code string) (Shad
 	// Set initial resolution
 	base.SetUniform("iResolution", []float32{float32(width), float32(height), 1.0})
 
-	return &shaderToyNode{
-		Node: base,
+	return &fxShadertoyNode{
+		FXNode: base,
 	}, nil
 }
 
-func (n *shaderToyNode) SetTime(t float32) {
+func (n *fxShadertoyNode) SetTime(t float32) {
 	n.SetUniform("iTime", t)
 }

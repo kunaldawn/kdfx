@@ -1,8 +1,8 @@
-package context
+package fxcontext
 
-// Context defines the interface for an OpenGL context wrapper.
+// FXContext defines the interface for an OpenGL context wrapper.
 // It abstracts the underlying windowing system (GLFW, EGL, etc.).
-type Context interface {
+type FXContext interface {
 	// MakeCurrent makes the context current on the calling thread.
 	MakeCurrent()
 	// SwapBuffers swaps the front and back buffers (if applicable).
@@ -11,6 +11,6 @@ type Context interface {
 	Destroy()
 	// GetSize returns the width and height of the context/surface.
 	GetSize() (int, int)
-	// Viewport sets the viewport for the context.
+	// Viewport sets the viewport for the fxcontext.
 	Viewport(x, y, width, height int)
 }

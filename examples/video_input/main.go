@@ -5,9 +5,9 @@ import (
 	"os"
 	"time"
 
-	"kdfx/pkg/context"
-	colorfx "kdfx/pkg/fxlib/color"
-	"kdfx/pkg/video"
+	"kdfx/pkg/fxcontext"
+	"kdfx/pkg/fxlib/fxcolor"
+	"kdfx/pkg/fxvideo"
 )
 
 func main() {
@@ -19,36 +19,36 @@ func main() {
 	}
 
 	// Probe input to get dimensions
-	info, err := video.ProbeVideo(inputPath)
+	info, err := fxvideo.FXProbeVideo(inputPath)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Input Video: %dx%d @ %d fps, Duration: %v\n", info.Width, info.Height, info.FPS, info.Duration)
 
 	width, height := info.Width, info.Height
-	ctx, err := context.NewOffscreenContext(width, height)
+	ctx, err := fxcontext.NewFXOffscreenContext(width, height)
 	if err != nil {
 		panic(err)
 	}
 	defer ctx.Destroy()
 
 	// 1. Create Video Node
-	videoNode, err := video.NewVideoInputNode(ctx, inputPath)
+	videoNode, err := fxvideo.NewFXVideoInputNode(ctx, inputPath)
 	if err != nil {
 		panic(err)
 	}
 	defer videoNode.Release()
 
 	// Set Loop Mode
-	videoNode.SetMode(video.ModeLoop)
+	videoNode.SetMode(fxvideo.FXModeLoop)
 
 	// 2. Apply Filter (Sepia)
-	filterNode, err := colorfx.NewColorFilterNode(ctx, width, height)
+	filterNode, err := fxcolor.NewFXColorFilterNode(ctx, width, height)
 	if err != nil {
 		panic(err)
 	}
 	filterNode.SetInput("u_texture", videoNode)
-	filterNode.SetMode(colorfx.FilterSepia)
+	filterNode.SetMode(fxcolor.FXFilterSepia)
 
 	// 3. Render Output
 	// Render for 2x the input duration to verify looping
@@ -59,7 +59,7 @@ func main() {
 	}
 	defer outFile.Close()
 
-	anim := video.NewAnimation(outDuration, info.FPS, func(t time.Duration) {
+	anim := fxvideo.NewFXAnimation(outDuration, info.FPS, func(t time.Duration) {
 		videoNode.SetTime(t)
 	})
 

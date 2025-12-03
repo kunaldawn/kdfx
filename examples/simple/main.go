@@ -7,23 +7,23 @@ import (
 	"image/png"
 	"os"
 
-	"kdfx/pkg/context"
-	"kdfx/pkg/core"
-	"kdfx/pkg/fxlib/blur"
-	colorfx "kdfx/pkg/fxlib/color"
+	"kdfx/pkg/fxcontext"
+	"kdfx/pkg/fxcore"
+	"kdfx/pkg/fxlib/fxblur"
+	"kdfx/pkg/fxlib/fxcolor"
 )
 
 // InputNode is a simple node that just provides a texture.
 type InputNode struct {
-	Texture core.Texture
+	Texture fxcore.FXTexture
 }
 
-func (n *InputNode) GetTexture() core.Texture { return n.Texture }
-func (n *InputNode) IsDirty() bool            { return false } // Static input
+func (n *InputNode) GetTexture() fxcore.FXTexture { return n.Texture }
+func (n *InputNode) IsDirty() bool                { return false } // Static input
 
 func main() {
 	width, height := 512, 512
-	ctx, err := context.NewOffscreenContext(width, height)
+	ctx, err := fxcontext.NewFXOffscreenContext(width, height)
 	if err != nil {
 		panic(err)
 	}
@@ -46,7 +46,7 @@ func main() {
 
 	// 2. Upload to Texture
 	// Load input from file
-	inputTex, err := core.LoadTextureFromFile("input.png")
+	inputTex, err := fxcore.FXLoadTextureFromFile("input.png")
 	if err != nil {
 		panic(err)
 	}
@@ -56,7 +56,7 @@ func main() {
 
 	inputNode := &InputNode{Texture: inputTex}
 
-	bcNode, err := colorfx.NewColorAdjustmentNode(ctx, width, height)
+	bcNode, err := fxcolor.NewFXColorAdjustmentNode(ctx, width, height)
 	if err != nil {
 		panic(err)
 	}
@@ -64,7 +64,7 @@ func main() {
 	bcNode.SetBrightness(0.1) // Increase brightness
 	bcNode.SetContrast(1.2)   // Increase contrast
 
-	blurNode, err := blur.NewGaussianBlurNode(ctx, width, height)
+	blurNode, err := fxblur.NewFXGaussianBlurNode(ctx, width, height)
 	if err != nil {
 		panic(err)
 	}

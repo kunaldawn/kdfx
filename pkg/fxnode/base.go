@@ -1,64 +1,64 @@
-package node
+package fxnode
 
 import (
-	"kdfx/pkg/context"
-	"kdfx/pkg/core"
+	"kdfx/pkg/fxcontext"
+	"kdfx/pkg/fxcore"
 )
 
-// baseNode implements common logic for Nodes.
-type baseNode struct {
-	inputs   map[string]Input
+// fxBaseNode implements common logic for Nodes.
+type fxBaseNode struct {
+	inputs   map[string]FXInput
 	uniforms map[string]interface{}
-	output   core.Framebuffer
-	program  core.ShaderProgram
-	quad     core.Quad
+	output   fxcore.FXFramebuffer
+	program  fxcore.FXShaderProgram
+	quad     fxcore.FXQuad
 	dirty    bool
-	context  context.Context
+	context  fxcontext.FXContext
 }
 
-// NewBaseNode initializes a BaseNode.
-func NewBaseNode(ctx context.Context, width, height int) (Node, error) {
-	fbo, err := core.NewFramebuffer(width, height)
+// NewFXBaseNode initializes a FXBaseNode.
+func NewFXBaseNode(ctx fxcontext.FXContext, width, height int) (FXNode, error) {
+	fbo, err := fxcore.NewFXFramebuffer(width, height)
 	if err != nil {
 		return nil, err
 	}
-	return &baseNode{
-		inputs:   make(map[string]Input),
+	return &fxBaseNode{
+		inputs:   make(map[string]FXInput),
 		uniforms: make(map[string]interface{}),
 		output:   fbo,
-		quad:     core.NewQuad(),
+		quad:     fxcore.NewFXQuad(),
 		dirty:    true,
 		context:  ctx,
 	}, nil
 }
 
-func (n *baseNode) SetInput(name string, input Input) {
+func (n *fxBaseNode) SetInput(name string, input FXInput) {
 	n.inputs[name] = input
 	n.dirty = true
 }
 
-func (n *baseNode) GetInput(name string) Input {
+func (n *fxBaseNode) GetInput(name string) FXInput {
 	return n.inputs[name]
 }
 
-func (n *baseNode) GetFramebuffer() core.Framebuffer {
+func (n *fxBaseNode) GetFramebuffer() fxcore.FXFramebuffer {
 	return n.output
 }
 
-func (n *baseNode) SetUniform(name string, value interface{}) {
+func (n *fxBaseNode) SetUniform(name string, value interface{}) {
 	n.uniforms[name] = value
 	n.dirty = true
 }
 
-func (n *baseNode) SetShaderProgram(program core.ShaderProgram) {
+func (n *fxBaseNode) SetShaderProgram(program fxcore.FXShaderProgram) {
 	n.program = program
 }
 
-func (n *baseNode) GetTexture() core.Texture {
+func (n *fxBaseNode) GetTexture() fxcore.FXTexture {
 	return n.output.GetTexture()
 }
 
-func (n *baseNode) IsDirty() bool {
+func (n *fxBaseNode) IsDirty() bool {
 	if n.dirty {
 		return true
 	}
@@ -70,7 +70,7 @@ func (n *baseNode) IsDirty() bool {
 	return false
 }
 
-func (n *baseNode) Release() {
+func (n *fxBaseNode) Release() {
 	if n.output != nil {
 		n.output.Release()
 	}
@@ -83,7 +83,7 @@ func (n *baseNode) Release() {
 }
 
 // CheckDirty checks if processing is needed.
-func (n *baseNode) CheckDirty() bool {
+func (n *fxBaseNode) CheckDirty() bool {
 	isDirty := n.IsDirty()
 	if isDirty {
 		n.dirty = false
@@ -92,7 +92,7 @@ func (n *baseNode) CheckDirty() bool {
 }
 
 // Process executes the node's operation.
-func (n *baseNode) Process(ctx context.Context) error {
+func (n *fxBaseNode) Process(ctx fxcontext.FXContext) error {
 	// 1. Process Inputs
 	if err := n.ProcessInputs(ctx); err != nil {
 		return err
@@ -150,9 +150,9 @@ func (n *baseNode) Process(ctx context.Context) error {
 }
 
 // ProcessInputs ensures that all input nodes are processed.
-func (n *baseNode) ProcessInputs(ctx context.Context) error {
+func (n *fxBaseNode) ProcessInputs(ctx fxcontext.FXContext) error {
 	for _, input := range n.inputs {
-		if node, ok := input.(Node); ok {
+		if node, ok := input.(FXNode); ok {
 			if err := node.Process(ctx); err != nil {
 				return err
 			}

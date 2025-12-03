@@ -1,24 +1,24 @@
-package color
+package fxcolor
 
 import (
-	"kdfx/pkg/context"
-	"kdfx/pkg/core"
-	"kdfx/pkg/node"
+	"kdfx/pkg/fxcontext"
+	"kdfx/pkg/fxcore"
+	"kdfx/pkg/fxnode"
 )
 
-// FilterMode represents the type of color filter.
-type FilterMode int
+// FXFilterMode represents the type of color filter.
+type FXFilterMode int
 
 const (
-	FilterNone FilterMode = iota
-	FilterInvert
-	FilterSepia
-	FilterGrayscale
-	FilterThreshold
-	FilterPosterize
+	FXFilterNone FXFilterMode = iota
+	FXFilterInvert
+	FXFilterSepia
+	FXFilterGrayscale
+	FXFilterThreshold
+	FXFilterPosterize
 )
 
-const filtersFS = `
+const FXFiltersFS = `
 precision mediump float;
 varying vec2 v_texCoord;
 uniform sampler2D u_texture;
@@ -52,27 +52,27 @@ void main() {
 }
 `
 
-// ColorFilterNode applies artistic color filters to the input texture.
-type ColorFilterNode interface {
-	node.Node
+// FXColorFilterNode applies artistic color filters to the input texture.
+type FXColorFilterNode interface {
+	fxnode.FXNode
 	// SetMode sets the filter mode.
-	SetMode(mode FilterMode)
+	SetMode(mode FXFilterMode)
 	// SetParam sets the parameter for the filter (e.g., threshold or levels).
 	SetParam(p float32)
 }
 
-type colorFilterNode struct {
-	node.Node
+type fxColorFilterNode struct {
+	fxnode.FXNode
 }
 
-// NewColorFilterNode creates a new color filter node.
-func NewColorFilterNode(ctx context.Context, width, height int) (ColorFilterNode, error) {
-	base, err := node.NewBaseNode(ctx, width, height)
+// NewFXColorFilterNode creates a new color filter fxnode.
+func NewFXColorFilterNode(ctx fxcontext.FXContext, width, height int) (FXColorFilterNode, error) {
+	base, err := fxnode.NewFXBaseNode(ctx, width, height)
 	if err != nil {
 		return nil, err
 	}
 
-	program, err := core.NewShaderProgram(core.SimpleVS, filtersFS)
+	program, err := fxcore.NewFXShaderProgram(fxcore.FXSimpleVS, FXFiltersFS)
 	if err != nil {
 		base.Release()
 		return nil, err
@@ -80,20 +80,20 @@ func NewColorFilterNode(ctx context.Context, width, height int) (ColorFilterNode
 
 	base.SetShaderProgram(program)
 
-	n := &colorFilterNode{
-		Node: base,
+	n := &fxColorFilterNode{
+		FXNode: base,
 	}
 
-	n.SetMode(FilterNone)
+	n.SetMode(FXFilterNone)
 	n.SetParam(0.5) // Default param
 
 	return n, nil
 }
 
-func (n *colorFilterNode) SetMode(mode FilterMode) {
+func (n *fxColorFilterNode) SetMode(mode FXFilterMode) {
 	n.SetUniform("u_mode", int(mode))
 }
 
-func (n *colorFilterNode) SetParam(p float32) {
+func (n *fxColorFilterNode) SetParam(p float32) {
 	n.SetUniform("u_param", p)
 }

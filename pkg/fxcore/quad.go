@@ -1,22 +1,22 @@
-package core
+package fxcore
 
 import (
 	"github.com/go-gl/gl/v3.1/gles2"
 )
 
-// Quad represents a full-screen quad for rendering.
-type Quad interface {
-	// Draw renders the quad using the specified attribute locations.
+// FXQuad represents a full-screen fxQuad for rendering.
+type FXQuad interface {
+	// Draw renders the fxQuad using the specified attribute locations.
 	Draw(positionAttrib, texCoordAttrib int32)
-	// Release frees the OpenGL resources associated with the quad.
+	// Release frees the OpenGL resources associated with the fxQuad.
 	Release()
 }
 
-type quad struct {
+type fxQuad struct {
 	vbo uint32
 }
 
-var quadVertices = []float32{
+var fxQuadVertices = []float32{
 	// Pos      // Tex
 	-1.0, 1.0, 0.0, 1.0,
 	-1.0, -1.0, 0.0, 0.0,
@@ -24,17 +24,17 @@ var quadVertices = []float32{
 	1.0, -1.0, 1.0, 0.0,
 }
 
-// NewQuad creates a new full-screen quad.
-func NewQuad() Quad {
+// NewFXQuad creates a new full-screen fxQuad.
+func NewFXQuad() FXQuad {
 	var vbo uint32
 	gles2.GenBuffers(1, &vbo)
 	gles2.BindBuffer(gles2.ARRAY_BUFFER, vbo)
-	gles2.BufferData(gles2.ARRAY_BUFFER, len(quadVertices)*4, gles2.Ptr(quadVertices), gles2.STATIC_DRAW)
+	gles2.BufferData(gles2.ARRAY_BUFFER, len(fxQuadVertices)*4, gles2.Ptr(fxQuadVertices), gles2.STATIC_DRAW)
 	gles2.BindBuffer(gles2.ARRAY_BUFFER, 0)
-	return &quad{vbo: vbo}
+	return &fxQuad{vbo: vbo}
 }
 
-func (q *quad) Draw(positionAttrib, texCoordAttrib int32) {
+func (q *fxQuad) Draw(positionAttrib, texCoordAttrib int32) {
 	gles2.BindBuffer(gles2.ARRAY_BUFFER, q.vbo)
 
 	gles2.EnableVertexAttribArray(uint32(positionAttrib))
@@ -51,6 +51,6 @@ func (q *quad) Draw(positionAttrib, texCoordAttrib int32) {
 	gles2.BindBuffer(gles2.ARRAY_BUFFER, 0)
 }
 
-func (q *quad) Release() {
+func (q *fxQuad) Release() {
 	gles2.DeleteBuffers(1, &q.vbo)
 }

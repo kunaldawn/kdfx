@@ -7,23 +7,23 @@ import (
 	"image/png"
 	"os"
 
-	"kdfx/pkg/context"
-	"kdfx/pkg/core"
-	"kdfx/pkg/fxlib/blend"
+	"kdfx/pkg/fxcontext"
+	"kdfx/pkg/fxcore"
+	"kdfx/pkg/fxlib/fxblend"
 )
 
 // InputNode is a simple node that just provides a texture.
 type InputNode struct {
-	Texture core.Texture
+	Texture fxcore.FXTexture
 }
 
-func (n *InputNode) GetTexture() core.Texture          { return n.Texture }
-func (n *InputNode) IsDirty() bool                     { return false }
-func (n *InputNode) Process(ctx context.Context) error { return nil }
+func (n *InputNode) GetTexture() fxcore.FXTexture          { return n.Texture }
+func (n *InputNode) IsDirty() bool                         { return false }
+func (n *InputNode) Process(ctx fxcontext.FXContext) error { return nil }
 
 func main() {
 	width, height := 512, 512
-	ctx, err := context.NewOffscreenContext(width, height)
+	ctx, err := fxcontext.NewFXOffscreenContext(width, height)
 	if err != nil {
 		panic(err)
 	}
@@ -38,7 +38,7 @@ func main() {
 		}
 	}
 	saveImage("base.png", baseImg)
-	baseTex, _ := core.LoadTextureFromFile("base.png")
+	baseTex, _ := fxcore.FXLoadTextureFromFile("base.png")
 	baseNode := &InputNode{Texture: baseTex}
 
 	// 2. Create Blend Image (Vertical Gradient)
@@ -49,12 +49,12 @@ func main() {
 			blendImg.Set(x, y, color.RGBA{val, 0, 0, 255}) // Red gradient
 		}
 	}
-	saveImage("blend.png", blendImg)
-	blendTex, _ := core.LoadTextureFromFile("blend.png")
+	saveImage("fxblend.png", blendImg)
+	blendTex, _ := fxcore.FXLoadTextureFromFile("fxblend.png")
 	blendInputNode := &InputNode{Texture: blendTex}
 
 	// 3. Create Blend Node
-	blendNode, err := blend.NewBlendNode(ctx, width, height)
+	blendNode, err := fxblend.NewFXBlendNode(ctx, width, height)
 	if err != nil {
 		panic(err)
 	}
@@ -63,13 +63,13 @@ func main() {
 	blendNode.SetFactor(1.0)
 
 	// 4. Test Modes
-	modes := map[string]blend.BlendMode{
-		"normal":     blend.BlendNormal,
-		"add":        blend.BlendAdd,
-		"multiply":   blend.BlendMultiply,
-		"screen":     blend.BlendScreen,
-		"overlay":    blend.BlendOverlay,
-		"difference": blend.BlendDifference,
+	modes := map[string]fxblend.FXBlendMode{
+		"normal":     fxblend.FXBlendNormal,
+		"add":        fxblend.FXBlendAdd,
+		"multiply":   fxblend.FXBlendMultiply,
+		"screen":     fxblend.FXBlendScreen,
+		"overlay":    fxblend.FXBlendOverlay,
+		"difference": fxblend.FXBlendDifference,
 	}
 
 	for name, mode := range modes {
