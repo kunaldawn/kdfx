@@ -79,6 +79,7 @@ type FXColorAdjustmentNode interface {
 	SetExposure(e float32)
 }
 
+// fxColorAdjustmentNode implements FXColorAdjustmentNode.
 type fxColorAdjustmentNode struct {
 	fxnode.FXNode
 }

@@ -7,6 +7,7 @@ import (
 
 // fxGraph represents a collection of nodes and their connections.
 type fxGraph struct {
+	// nodes maps node names to FXNode instances.
 	nodes map[string]FXNode
 }
 
@@ -49,14 +50,16 @@ func (g *fxGraph) Release() {
 
 // fxPipeline manages the execution of a fxGraph.
 type fxPipeline struct {
-	fxGraph   FXGraph
+	// fxGraph is the graph to execute.
+	fxGraph FXGraph
+	// context is the FXContext used for execution.
 	context fxcontext.FXContext
 }
 
 // NewFXPipeline creates a new fxPipeline for a given fxGraph and fxcontext.
 func NewFXPipeline(ctx fxcontext.FXContext, fxGraph FXGraph) FXPipeline {
 	return &fxPipeline{
-		fxGraph:   fxGraph,
+		fxGraph: fxGraph,
 		context: ctx,
 	}
 }

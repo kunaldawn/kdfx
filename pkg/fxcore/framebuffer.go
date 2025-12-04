@@ -18,8 +18,11 @@ type FXFramebuffer interface {
 	GetTexture() FXTexture
 }
 
+// fxFramebuffer implements FXFramebuffer.
 type fxFramebuffer struct {
-	id      uint32
+	// id is the OpenGL framebuffer ID.
+	id uint32
+	// fxTexture is the texture attached to the framebuffer.
 	fxTexture FXTexture
 }
 

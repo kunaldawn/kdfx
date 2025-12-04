@@ -136,6 +136,7 @@ type FXBlendNode interface {
 	SetInput2(input fxnode.FXInput)
 }
 
+// fxBlendNode implements FXBlendNode.
 type fxBlendNode struct {
 	fxnode.FXNode
 }

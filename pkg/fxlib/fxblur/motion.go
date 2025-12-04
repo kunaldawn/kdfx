@@ -40,9 +40,12 @@ type FXMotionBlurNode interface {
 	SetStrength(s float32)
 }
 
+// fxMotionBlurNode implements FXMotionBlurNode.
 type fxMotionBlurNode struct {
 	fxnode.FXNode
-	angle    float32
+	// angle is the angle of the motion blur in degrees.
+	angle float32
+	// strength is the strength of the motion blur.
 	strength float32
 }
 

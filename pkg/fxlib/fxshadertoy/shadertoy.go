@@ -14,6 +14,7 @@ type FXShaderToyNode interface {
 	SetTime(t float32)
 }
 
+// fxShadertoyNode implements FXShaderToyNode.
 type fxShadertoyNode struct {
 	fxnode.FXNode
 }

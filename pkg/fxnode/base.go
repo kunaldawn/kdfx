@@ -7,18 +7,32 @@ import (
 
 // fxBaseNode implements common logic for Nodes.
 type fxBaseNode struct {
-	inputs   map[string]FXInput
+	// inputs stores the input connections.
+	inputs map[string]FXInput
+	// uniforms stores the uniform values for the shader.
 	uniforms map[string]interface{}
-	output   fxcore.FXFramebuffer
-	program  fxcore.FXShaderProgram
-	quad     fxcore.FXQuad
-	dirty    bool
-	context  fxcontext.FXContext
+	// output is the framebuffer where the node renders its result.
+	output fxcore.FXFramebuffer
+	// program is the shader program used by the node.
+	program fxcore.FXShaderProgram
+	// quad is the full-screen quad used for rendering.
+	quad fxcore.FXQuad
+	// dirty indicates if the node needs to be re-processed.
+	dirty bool
+	// context is the FXContext associated with the node.
+	context fxcontext.FXContext
 
 	// Transformations
-	posX, posY     float32
-	scaleX, scaleY float32
-	rotation       float32
+	// posX is the x-coordinate of the node's position.
+	posX float32
+	// posY is the y-coordinate of the node's position.
+	posY float32
+	// scaleX is the horizontal scale factor.
+	scaleX float32
+	// scaleY is the vertical scale factor.
+	scaleY float32
+	// rotation is the rotation angle in radians.
+	rotation float32
 }
 
 // NewFXBaseNode initializes a FXBaseNode.

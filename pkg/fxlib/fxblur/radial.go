@@ -42,6 +42,7 @@ type FXRadialBlurNode interface {
 	SetStrength(s float32)
 }
 
+// fxRadialBlurNode implements FXRadialBlurNode.
 type fxRadialBlurNode struct {
 	fxnode.FXNode
 }

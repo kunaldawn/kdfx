@@ -61,6 +61,7 @@ type FXColorFilterNode interface {
 	SetParam(p float32)
 }
 
+// fxColorFilterNode implements FXColorFilterNode.
 type fxColorFilterNode struct {
 	fxnode.FXNode
 }

@@ -41,8 +41,10 @@ type FXBoxBlurNode interface {
 	SetRadius(r float32)
 }
 
+// fxBoxBlurNode implements FXBoxBlurNode.
 type fxBoxBlurNode struct {
 	fxnode.FXNode
+	// ctx is the context used for rendering.
 	ctx fxcontext.FXContext
 }
 

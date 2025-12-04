@@ -14,11 +14,15 @@ type FXVideoOutputNode interface {
 	Close() error
 }
 
+// fxVideoOutputNode implements FXVideoOutputNode.
 type fxVideoOutputNode struct {
 	fxnode.FXNode
+	// encoder is the video stream encoder.
 	encoder FXStreamEncoder
-	input   fxnode.FXInput
-	ctx     fxcontext.FXContext
+	// input is the input connection.
+	input fxnode.FXInput
+	// ctx is the context used for rendering.
+	ctx fxcontext.FXContext
 }
 
 // NewFXVideoOutputNode creates a new video output fxnode.

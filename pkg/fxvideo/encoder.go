@@ -16,10 +16,15 @@ type FXStreamEncoder interface {
 }
 
 // fxMp4StreamEncoder implements StreamEncoder for MP4 output using ffmpeg.
+// fxMp4StreamEncoder implements FXStreamEncoder for MP4 output using ffmpeg.
 type fxMp4StreamEncoder struct {
-	cmd    *exec.Cmd
-	stdin  io.WriteCloser
-	width  int
+	// cmd is the ffmpeg command.
+	cmd *exec.Cmd
+	// stdin is the stdin pipe to ffmpeg.
+	stdin io.WriteCloser
+	// width is the width of the video.
+	width int
+	// height is the height of the video.
 	height int
 }
 

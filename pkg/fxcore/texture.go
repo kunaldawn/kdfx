@@ -32,9 +32,13 @@ type FXTexture interface {
 	Upload(img *image.RGBA)
 }
 
+// fxTexture implements FXTexture.
 type fxTexture struct {
-	id     uint32
-	width  int
+	// id is the OpenGL texture ID.
+	id uint32
+	// width is the width of the texture.
+	width int
+	// height is the height of the texture.
 	height int
 }
 

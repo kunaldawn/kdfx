@@ -27,14 +27,21 @@ type FXVideoInputNode interface {
 	SetTime(t time.Duration)           // Called by fxAnimation loop
 }
 
+// fxVideoInputNode implements FXVideoInputNode.
 type fxVideoInputNode struct {
 	fxnode.FXNode
-	decoder        FXStreamDecoder
-	texture        fxcore.FXTexture
-	img            *image.RGBA
-	mode           FXVideoPlaybackMode
+	// decoder is the video stream decoder.
+	decoder FXStreamDecoder
+	// texture is the texture where the video frame is uploaded.
+	texture fxcore.FXTexture
+	// img is the temporary image buffer.
+	img *image.RGBA
+	// mode is the playback mode (Loop, Stretch, Clamp, None).
+	mode FXVideoPlaybackMode
+	// targetDuration is the target duration for Stretch mode.
 	targetDuration time.Duration
-	currentTime    time.Duration
+	// currentTime is the current playback time.
+	currentTime time.Duration
 }
 
 // NewFXVideoInputNode creates a new video fxnode.

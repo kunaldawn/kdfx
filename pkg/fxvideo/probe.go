@@ -10,9 +10,13 @@ import (
 
 // FXVideoInfo contains metadata about a video file.
 type FXVideoInfo struct {
-	Width    int
-	Height   int
-	FPS      int
+	// Width is the width of the video in pixels.
+	Width int
+	// Height is the height of the video in pixels.
+	Height int
+	// FPS is the frames per second of the video.
+	FPS int
+	// Duration is the total duration of the video.
 	Duration time.Duration
 }
 

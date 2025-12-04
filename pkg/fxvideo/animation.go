@@ -15,10 +15,14 @@ type FXAnimation interface {
 	Render(ctx fxcontext.FXContext, node fxnode.FXNode, writer io.Writer) error
 }
 
+// fxAnimation implements FXAnimation.
 type fxAnimation struct {
+	// duration is the total duration of the animation.
 	duration time.Duration
-	fps      int
-	update   func(t time.Duration)
+	// fps is the frames per second of the animation.
+	fps int
+	// update is the function called to update the scene at each frame.
+	update func(t time.Duration)
 }
 
 // NewFXAnimation creates a new fxAnimation.

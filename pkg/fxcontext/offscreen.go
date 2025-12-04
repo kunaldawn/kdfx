@@ -15,8 +15,11 @@ func init() {
 
 // fxOffscreenContext implements FXContext using a hidden GLFW window.
 type fxOffscreenContext struct {
+	// window is the hidden GLFW window used for the context.
 	window *glfw.Window
-	width  int
+	// width is the width of the offscreen context.
+	width int
+	// height is the height of the offscreen context.
 	height int
 }
 

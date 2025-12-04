@@ -20,11 +20,17 @@ type FXStreamDecoder interface {
 	Info() FXVideoInfo
 }
 
+// fxFfmpegStreamDecoder implements FXStreamDecoder using ffmpeg.
 type fxFfmpegStreamDecoder struct {
-	path        string
-	info        FXVideoInfo
-	cmd         *exec.Cmd
-	stdout      io.ReadCloser
+	// path is the path to the video file.
+	path string
+	// info contains metadata about the video.
+	info FXVideoInfo
+	// cmd is the ffmpeg command.
+	cmd *exec.Cmd
+	// stdout is the stdout pipe from ffmpeg.
+	stdout io.ReadCloser
+	// currentTime is the current playback time.
 	currentTime time.Duration
 }
 

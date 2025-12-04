@@ -12,7 +12,9 @@ type FXQuad interface {
 	Release()
 }
 
+// fxQuad implements FXQuad.
 type fxQuad struct {
+	// vbo is the Vertex Buffer Object ID.
 	vbo uint32
 }
 

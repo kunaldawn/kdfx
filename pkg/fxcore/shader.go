@@ -53,8 +53,11 @@ type FXShader interface {
 	GetID() uint32
 }
 
+// fxShader implements FXShader.
 type fxShader struct {
-	id   uint32
+	// id is the OpenGL shader ID.
+	id uint32
+	// kind is the type of shader (Vertex or Fragment).
 	kind FXShaderType
 }
 
@@ -114,7 +117,9 @@ type FXShaderProgram interface {
 	GetAttribLocation(name string) int32
 }
 
+// fxShaderProgram implements FXShaderProgram.
 type fxShaderProgram struct {
+	// id is the OpenGL program ID.
 	id uint32
 }
 

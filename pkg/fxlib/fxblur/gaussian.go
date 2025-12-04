@@ -44,12 +44,17 @@ type FXGaussianBlurNode interface {
 	SetRadius(r float32)
 }
 
+// fxGaussianBlurNode implements FXGaussianBlurNode.
 type fxGaussianBlurNode struct {
 	fxnode.FXNode
-	tempFB  fxcore.FXFramebuffer
-	ctx     fxcontext.FXContext
+	// tempFB is the temporary framebuffer for the first pass.
+	tempFB fxcore.FXFramebuffer
+	// ctx is the context used for rendering.
+	ctx fxcontext.FXContext
+	// program is the shader program for Gaussian blur.
 	program fxcore.FXShaderProgram
-	radius  float32
+	// radius is the blur radius.
+	radius float32
 }
 
 // NewFXGaussianBlurNode creates a new Gaussian blur fxnode.
