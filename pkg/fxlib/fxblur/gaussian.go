@@ -7,6 +7,7 @@ import (
 	"kdfx/pkg/fxnode"
 )
 
+// FXGaussianFS is the fragment fxShader for Gaussian blur.
 const FXGaussianFS = `
 precision mediump float;
 varying vec2 v_texCoord;
@@ -40,7 +41,8 @@ void main() {
 // FXGaussianBlurNode applies a Gaussian blur to the input texture.
 type FXGaussianBlurNode interface {
 	fxnode.FXNode
-	// SetRadius sets the blur radius.
+	// SetRadius sets the blur radius (sigma).
+	// This controls the spread of the Gaussian function.
 	SetRadius(r float32)
 }
 
@@ -59,11 +61,13 @@ type fxGaussianBlurNode struct {
 
 // NewFXGaussianBlurNode creates a new Gaussian blur fxnode.
 func NewFXGaussianBlurNode(ctx fxcontext.FXContext, width, height int) (FXGaussianBlurNode, error) {
+	// Create the base node.
 	base, err := fxnode.NewFXBaseNode(ctx, width, height)
 	if err != nil {
 		return nil, err
 	}
 
+	// Compile the shader program.
 	program, err := fxcore.NewFXShaderProgram(fxcore.FXSimpleVS, FXGaussianFS)
 	if err != nil {
 		base.Release()
@@ -72,6 +76,8 @@ func NewFXGaussianBlurNode(ctx fxcontext.FXContext, width, height int) (FXGaussi
 	base.SetShaderProgram(program)
 
 	// Create temporary framebuffer for two-pass blur
+	// Gaussian blur is separable, so we do one horizontal pass and one vertical pass.
+	// This requires an intermediate framebuffer.
 	tempFB, err := fxcore.NewFXFramebuffer(width, height)
 	if err != nil {
 		base.Release()
@@ -122,12 +128,14 @@ func (n *fxGaussianBlurNode) Process(ctx fxcontext.FXContext) error {
 	texLoc := n.program.GetAttribLocation("a_texCoord")
 
 	// 4. Pass 1: Horizontal Blur (Input -> TempFB)
+	// Bind the temporary framebuffer.
 	n.tempFB.Bind()
 	w, h := n.tempFB.GetTexture().GetSize()
 	n.ctx.Viewport(0, 0, w, h)
 	n.program.Use()
 
 	// Set Uniforms for Pass 1
+	// Direction (1, 0) means horizontal.
 	n.program.SetUniform2f("u_direction", 1.0, 0.0)
 	n.program.SetUniform1f("u_radius", n.radius)
 	n.program.SetUniform2f("u_resolution", float32(w), float32(h))
@@ -137,6 +145,7 @@ func (n *fxGaussianBlurNode) Process(ctx fxcontext.FXContext) error {
 	n.program.SetUniform1i("u_texture", 0)
 
 	// Set Identity Transform for Pass 1 (Intermediate)
+	// We want to blur the texture exactly as is, without any transformation yet.
 	n.program.SetUniform2f("u_translation", 0.0, 0.0)
 	n.program.SetUniform2f("u_scale", 1.0, 1.0)
 	n.program.SetUniform1f("u_rotation", 0.0)
@@ -145,6 +154,7 @@ func (n *fxGaussianBlurNode) Process(ctx fxcontext.FXContext) error {
 	quad.Draw(posLoc, texLoc)
 
 	// 5. Pass 2: Vertical Blur (TempFB -> OutputFB)
+	// Bind the final output framebuffer.
 	outputFB := n.GetFramebuffer()
 	outputFB.Bind()
 	w, h = outputFB.GetTexture().GetSize()
@@ -152,15 +162,18 @@ func (n *fxGaussianBlurNode) Process(ctx fxcontext.FXContext) error {
 	n.program.Use() // Ensure program is used (though it should be)
 
 	// Set Uniforms for Pass 2
+	// Direction (0, 1) means vertical.
 	n.program.SetUniform2f("u_direction", 0.0, 1.0)
 	n.program.SetUniform1f("u_radius", n.radius)
 	n.program.SetUniform2f("u_resolution", float32(w), float32(h))
 
 	// Bind Temp Texture
+	// Use the result of the first pass as input.
 	n.tempFB.GetTexture().BindToUnit(0)
 	n.program.SetUniform1i("u_texture", 0)
 
 	// Set Node Transform for Pass 2 (Final)
+	// Apply the node's transformation (position, scale, rotation) in the final pass.
 	n.UpdateTransformationUniforms(n.program)
 
 	// Draw

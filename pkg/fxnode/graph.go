@@ -24,6 +24,7 @@ func (g *fxGraph) AddNode(name string, node FXNode) {
 }
 
 // Connect connects the output of sourceNode to the input slot of targetNode.
+// The inputSlot string typically matches a uniform name in the target node's shader.
 func (g *fxGraph) Connect(sourceNodeName, targetNodeName, inputSlot string) error {
 	source, ok := g.nodes[sourceNodeName]
 	if !ok {
@@ -34,6 +35,7 @@ func (g *fxGraph) Connect(sourceNodeName, targetNodeName, inputSlot string) erro
 		return fmt.Errorf("target node %s not found", targetNodeName)
 	}
 
+	// Set the source node as an input to the target node.
 	target.SetInput(inputSlot, source)
 	return nil
 }
@@ -72,10 +74,11 @@ func (p *fxPipeline) Execute(outputNodeName string) error {
 		return fmt.Errorf("output node %s not found", outputNodeName)
 	}
 
+	// Trigger the processing chain starting from the output node.
+	// The Process method of the node will recursively call Process on its inputs.
 	return node.Process(p.context)
 }
 
-// Release releases all resources in the fxGraph.
 // Release releases all resources in the fxGraph.
 func (p *fxPipeline) Release() {
 	if p.fxGraph != nil {

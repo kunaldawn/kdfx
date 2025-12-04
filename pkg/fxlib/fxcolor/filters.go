@@ -1,3 +1,4 @@
+// Package fxcolor provides color manipulation effects like filters and adjustments.
 package fxcolor
 
 import (
@@ -10,14 +11,21 @@ import (
 type FXFilterMode int
 
 const (
+	// FXFilterNone applies no filter.
 	FXFilterNone FXFilterMode = iota
+	// FXFilterInvert inverts the colors (negative).
 	FXFilterInvert
+	// FXFilterSepia applies a sepia tone effect.
 	FXFilterSepia
+	// FXFilterGrayscale converts the image to grayscale.
 	FXFilterGrayscale
+	// FXFilterThreshold converts the image to black and white based on a threshold.
 	FXFilterThreshold
+	// FXFilterPosterize reduces the number of colors in the image.
 	FXFilterPosterize
 )
 
+// FXFiltersFS is the fragment fxShader for color filters.
 const FXFiltersFS = `
 precision mediump float;
 varying vec2 v_texCoord;
@@ -56,8 +64,11 @@ void main() {
 type FXColorFilterNode interface {
 	fxnode.FXNode
 	// SetMode sets the filter mode.
+	// See FXFilterMode constants for available modes.
 	SetMode(mode FXFilterMode)
-	// SetParam sets the parameter for the filter (e.g., threshold or levels).
+	// SetParam sets the parameter for the filter.
+	// For FXFilterThreshold, it sets the threshold value (0.0 to 1.0).
+	// For FXFilterPosterize, it sets the number of color levels (e.g., 4.0, 8.0).
 	SetParam(p float32)
 }
 
@@ -73,6 +84,7 @@ func NewFXColorFilterNode(ctx fxcontext.FXContext, width, height int) (FXColorFi
 		return nil, err
 	}
 
+	// Compile the shader program with the simple vertex shader and filters fragment shader.
 	program, err := fxcore.NewFXShaderProgram(fxcore.FXSimpleVS, FXFiltersFS)
 	if err != nil {
 		base.Release()
@@ -85,16 +97,20 @@ func NewFXColorFilterNode(ctx fxcontext.FXContext, width, height int) (FXColorFi
 		FXNode: base,
 	}
 
+	// Set default mode to None.
 	n.SetMode(FXFilterNone)
+	// Set default parameter.
 	n.SetParam(0.5) // Default param
 
 	return n, nil
 }
 
 func (n *fxColorFilterNode) SetMode(mode FXFilterMode) {
+	// Set the filter mode uniform.
 	n.SetUniform("u_mode", int(mode))
 }
 
 func (n *fxColorFilterNode) SetParam(p float32) {
+	// Set the filter parameter uniform (e.g., threshold or levels).
 	n.SetUniform("u_param", p)
 }

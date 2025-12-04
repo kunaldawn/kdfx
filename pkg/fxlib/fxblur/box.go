@@ -1,3 +1,4 @@
+// Package fxblur provides blur effects for the kdfx library.
 package fxblur
 
 import (
@@ -6,6 +7,7 @@ import (
 	"kdfx/pkg/fxnode"
 )
 
+// FXBoxBlurFS is the fragment fxShader for box blur.
 const FXBoxBlurFS = `
 precision mediump float;
 varying vec2 v_texCoord;
@@ -37,7 +39,8 @@ void main() {
 // FXBoxBlurNode applies a box blur to the input texture.
 type FXBoxBlurNode interface {
 	fxnode.FXNode
-	// SetRadius sets the blur radius.
+	// SetRadius sets the blur radius in pixels.
+	// A larger radius results in a stronger blur.
 	SetRadius(r float32)
 }
 
@@ -55,12 +58,14 @@ func NewFXBoxBlurNode(ctx fxcontext.FXContext, width, height int) (FXBoxBlurNode
 		return nil, err
 	}
 
+	// Compile the shader program with the simple vertex shader and box blur fragment shader.
 	program, err := fxcore.NewFXShaderProgram(fxcore.FXSimpleVS, FXBoxBlurFS)
 	if err != nil {
 		base.Release()
 		return nil, err
 	}
 
+	// Set the shader program.
 	base.SetShaderProgram(program)
 
 	return &fxBoxBlurNode{
@@ -70,7 +75,9 @@ func NewFXBoxBlurNode(ctx fxcontext.FXContext, width, height int) (FXBoxBlurNode
 }
 
 func (n *fxBoxBlurNode) SetRadius(r float32) {
+	// Set the blur radius uniform.
 	n.SetUniform("u_radius", r)
+	// Set the resolution uniform, needed to calculate pixel offsets.
 	w, h := n.ctx.GetSize()
 	n.SetUniform("u_resolution", []float32{float32(w), float32(h)})
 }

@@ -6,6 +6,7 @@ import (
 	"kdfx/pkg/fxnode"
 )
 
+// FXAdjustmentsFS is the fragment fxShader for color adjustments.
 const FXAdjustmentsFS = `
 precision mediump float;
 varying vec2 v_texCoord;
@@ -66,16 +67,22 @@ void main() {
 type FXColorAdjustmentNode interface {
 	fxnode.FXNode
 	// SetBrightness sets the brightness (-1.0 to 1.0, default 0.0).
+	// Positive values brighten the image, negative values darken it.
 	SetBrightness(b float32)
 	// SetContrast sets the contrast (0.0 to >1.0, default 1.0).
+	// Values > 1.0 increase contrast, values < 1.0 decrease it.
 	SetContrast(c float32)
 	// SetHue sets the hue rotation (-0.5 to 0.5, default 0.0).
+	// Rotates the hue of the image in the HSV color space.
 	SetHue(h float32)
 	// SetSaturation sets the saturation (0.0 to >1.0, default 1.0).
+	// Values > 1.0 increase saturation, values < 1.0 decrease it (0.0 is grayscale).
 	SetSaturation(s float32)
 	// SetGamma sets the gamma correction (0.1 to >1.0, default 1.0).
+	// Controls the luminance of the image. Values < 1.0 brighten shadows, values > 1.0 darken them.
 	SetGamma(g float32)
 	// SetExposure sets the exposure (0.0 to >1.0, default 1.0).
+	// Simulates camera exposure. Values > 1.0 brighten the image, values < 1.0 darken it.
 	SetExposure(e float32)
 }
 
@@ -91,6 +98,7 @@ func NewFXColorAdjustmentNode(ctx fxcontext.FXContext, width, height int) (FXCol
 		return nil, err
 	}
 
+	// Compile the shader program with the simple vertex shader and adjustments fragment shader.
 	program, err := fxcore.NewFXShaderProgram(fxcore.FXSimpleVS, FXAdjustmentsFS)
 	if err != nil {
 		base.Release()
@@ -115,25 +123,31 @@ func NewFXColorAdjustmentNode(ctx fxcontext.FXContext, width, height int) (FXCol
 }
 
 func (n *fxColorAdjustmentNode) SetBrightness(b float32) {
+	// Set brightness uniform.
 	n.SetUniform("u_brightness", b)
 }
 
 func (n *fxColorAdjustmentNode) SetContrast(c float32) {
+	// Set contrast uniform.
 	n.SetUniform("u_contrast", c)
 }
 
 func (n *fxColorAdjustmentNode) SetHue(h float32) {
+	// Set hue uniform.
 	n.SetUniform("u_hue", h)
 }
 
 func (n *fxColorAdjustmentNode) SetSaturation(s float32) {
+	// Set saturation uniform.
 	n.SetUniform("u_saturation", s)
 }
 
 func (n *fxColorAdjustmentNode) SetGamma(g float32) {
+	// Set gamma uniform.
 	n.SetUniform("u_gamma", g)
 }
 
 func (n *fxColorAdjustmentNode) SetExposure(e float32) {
+	// Set exposure uniform.
 	n.SetUniform("u_exposure", e)
 }

@@ -1,3 +1,4 @@
+// Package fxshadertoy provides a node for running ShaderToy-compatible GLSL code.
 package fxshadertoy
 
 import (
@@ -7,10 +8,14 @@ import (
 )
 
 // FXShaderToyNode allows running arbitrary GLSL code compatible with ShaderToy.
-// It provides iResolution, iTime, iMouse (partial), iChannel0..3.
+// It provides standard ShaderToy uniforms:
+// - iResolution (vec3): viewport resolution (in pixels)
+// - iTime (float): shader playback time (in seconds)
+// - iChannel0 (sampler2D): input texture channel 0
 type FXShaderToyNode interface {
 	fxnode.FXNode
 	// SetTime sets the current time for the shader (iTime).
+	// This should be updated every frame to animate the shader.
 	SetTime(t float32)
 }
 
@@ -19,6 +24,7 @@ type fxShadertoyNode struct {
 	fxnode.FXNode
 }
 
+// FXShaderToyVS is the vertex fxShader for ShaderToy.
 const FXShaderToyVS = `
 attribute vec2 a_position;
 varying vec2 fragCoord;
@@ -53,6 +59,8 @@ void main() {
 
 // Wrap user code with ShaderToy boilerplate
 func wrapShaderToyCode(userCode string) string {
+	// Inject standard ShaderToy uniforms and the main entry point.
+	// The user code is expected to define mainImage(out vec4 fragColor, in vec2 fragCoord).
 	return `
 precision mediump float;
 uniform vec3 iResolution;
@@ -76,6 +84,7 @@ func NewFXShaderToyNode(ctx fxcontext.FXContext, width, height int, code string)
 		return nil, err
 	}
 
+	// Wrap the user code to make it compatible with our shader system.
 	fullSource := wrapShaderToyCode(code)
 	program, err := fxcore.NewFXShaderProgram(fxcore.FXSimpleVS, fullSource)
 	// ShaderToy uses mainImage(out vec4 fragColor, in vec2 fragCoord).
@@ -91,6 +100,7 @@ func NewFXShaderToyNode(ctx fxcontext.FXContext, width, height int, code string)
 	base.SetShaderProgram(program)
 
 	// Set initial resolution
+	// iResolution is a vec3 in ShaderToy (width, height, pixel_aspect_ratio).
 	base.SetUniform("iResolution", []float32{float32(width), float32(height), 1.0})
 
 	return &fxShadertoyNode{
@@ -99,5 +109,6 @@ func NewFXShaderToyNode(ctx fxcontext.FXContext, width, height int, code string)
 }
 
 func (n *fxShadertoyNode) SetTime(t float32) {
+	// Set the iTime uniform.
 	n.SetUniform("iTime", t)
 }

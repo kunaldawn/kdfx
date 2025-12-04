@@ -6,6 +6,7 @@ import (
 	"kdfx/pkg/fxnode"
 )
 
+// FXRadialBlurFS is the fragment fxShader for radial blur.
 const FXRadialBlurFS = `
 precision mediump float;
 varying vec2 v_texCoord;
@@ -36,9 +37,11 @@ void main() {
 // FXRadialBlurNode applies a radial (zoom) blur to the input texture.
 type FXRadialBlurNode interface {
 	fxnode.FXNode
-	// SetCenter sets the center of the blur (0.0 to 1.0).
+	// SetCenter sets the center of the blur in normalized coordinates (0.0 to 1.0).
+	// (0.5, 0.5) is the center of the image.
 	SetCenter(x, y float32)
 	// SetStrength sets the strength of the fxblur.
+	// This controls how much the pixels are pulled towards the center.
 	SetStrength(s float32)
 }
 
@@ -54,6 +57,7 @@ func NewFXRadialBlurNode(ctx fxcontext.FXContext, width, height int) (FXRadialBl
 		return nil, err
 	}
 
+	// Compile the shader program with the simple vertex shader and radial blur fragment shader.
 	program, err := fxcore.NewFXShaderProgram(fxcore.FXSimpleVS, FXRadialBlurFS)
 	if err != nil {
 		base.Release()
@@ -65,16 +69,20 @@ func NewFXRadialBlurNode(ctx fxcontext.FXContext, width, height int) (FXRadialBl
 	n := &fxRadialBlurNode{
 		FXNode: base,
 	}
+	// Set default center to the middle of the texture.
 	n.SetCenter(0.5, 0.5)
+	// Set default strength.
 	n.SetStrength(0.1)
 
 	return n, nil
 }
 
 func (n *fxRadialBlurNode) SetCenter(x, y float32) {
+	// Set the center point of the radial blur.
 	n.SetUniform("u_center", []float32{x, y})
 }
 
 func (n *fxRadialBlurNode) SetStrength(s float32) {
+	// Set the strength of the blur.
 	n.SetUniform("u_strength", s)
 }

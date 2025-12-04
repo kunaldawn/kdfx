@@ -23,6 +23,11 @@ type FXVideoInfo struct {
 // FXProbeVideo extracts metadata from a video file using ffprobe.
 func FXProbeVideo(path string) (*FXVideoInfo, error) {
 	// ffprobe -v error -select_streams v:0 -show_entries stream=width,height,r_frame_rate,duration -of csv=p=0 <path>
+	// Construct the ffprobe command to extract specific video stream information.
+	// -v error: Suppress non-error output.
+	// -select_streams v:0: Select the first video stream.
+	// -show_entries: Specify which fields to output.
+	// -of csv=p=0: Output in CSV format without header.
 	cmd := exec.Command("ffprobe",
 		"-v", "error",
 		"-select_streams", "v:0",
@@ -73,6 +78,7 @@ func FXProbeVideo(path string) (*FXVideoInfo, error) {
 
 func parseFPS(fpsStr string) (int, error) {
 	// fps can be "30/1" or "30"
+	// Handle rational frame rates (numerator/denominator).
 	parts := strings.Split(fpsStr, "/")
 	if len(parts) == 1 {
 		return strconv.Atoi(parts[0])

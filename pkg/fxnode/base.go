@@ -36,7 +36,10 @@ type fxBaseNode struct {
 }
 
 // NewFXBaseNode initializes a FXBaseNode.
+// It creates a framebuffer for output and a full-screen quad for rendering.
+// This serves as a foundation for most specific node implementations.
 func NewFXBaseNode(ctx fxcontext.FXContext, width, height int) (FXNode, error) {
+	// Create a framebuffer for the node's output.
 	fbo, err := fxcore.NewFXFramebuffer(width, height)
 	if err != nil {
 		return nil, err
@@ -45,11 +48,12 @@ func NewFXBaseNode(ctx fxcontext.FXContext, width, height int) (FXNode, error) {
 		inputs:   make(map[string]FXInput),
 		uniforms: make(map[string]interface{}),
 		output:   fbo,
-		quad:     fxcore.NewFXQuad(),
-		dirty:    true,
-		context:  ctx,
-		scaleX:   1.0,
-		scaleY:   1.0,
+		// Create a full-screen quad for rendering.
+		quad:    fxcore.NewFXQuad(),
+		dirty:   true,
+		context: ctx,
+		scaleX:  1.0,
+		scaleY:  1.0,
 	}, nil
 }
 
@@ -106,6 +110,7 @@ func (n *fxBaseNode) IsDirty() bool {
 	if n.dirty {
 		return true
 	}
+	// Check if any input nodes are dirty.
 	for _, input := range n.inputs {
 		if input.IsDirty() {
 			return true
@@ -138,21 +143,25 @@ func (n *fxBaseNode) CheckDirty() bool {
 // Process executes the node's operation.
 func (n *fxBaseNode) Process(ctx fxcontext.FXContext) error {
 	// 1. Process Inputs
+	// Ensure all upstream nodes have processed their data.
 	if err := n.ProcessInputs(ctx); err != nil {
 		return err
 	}
 
 	// 2. Check Dirty
+	// If neither this node nor its inputs have changed, skip processing.
 	if !n.CheckDirty() {
 		return nil
 	}
 
 	// 3. Setup Render
+	// Bind the output framebuffer.
 	n.output.Bind()
 	if n.program != nil {
 		n.program.Use()
 
 		// 4. Bind Inputs
+		// Bind input textures to texture units and set uniforms.
 		textureUnit := 0
 		for name, input := range n.inputs {
 			tex := input.GetTexture()
@@ -164,6 +173,7 @@ func (n *fxBaseNode) Process(ctx fxcontext.FXContext) error {
 		}
 
 		// 5. Set Uniforms
+		// Set user-defined uniforms.
 		for name, value := range n.uniforms {
 			switch v := value.(type) {
 			case float32:
@@ -182,9 +192,11 @@ func (n *fxBaseNode) Process(ctx fxcontext.FXContext) error {
 		}
 
 		// 6. Set Transformation Uniforms
+		// Set standard transformation uniforms (position, scale, rotation).
 		n.UpdateTransformationUniforms(n.program)
 
 		// 7. Draw
+		// Draw the full-screen quad.
 		if n.quad != nil {
 			posLoc := n.program.GetAttribLocation("a_position")
 			texLoc := n.program.GetAttribLocation("a_texCoord")
@@ -199,6 +211,7 @@ func (n *fxBaseNode) Process(ctx fxcontext.FXContext) error {
 // ProcessInputs ensures that all input nodes are processed.
 func (n *fxBaseNode) ProcessInputs(ctx fxcontext.FXContext) error {
 	for _, input := range n.inputs {
+		// Recursively call Process on input nodes.
 		if node, ok := input.(FXNode); ok {
 			if err := node.Process(ctx); err != nil {
 				return err

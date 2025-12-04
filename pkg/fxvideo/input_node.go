@@ -22,9 +22,14 @@ const (
 // FXVideoInputNode represents a node that outputs video frames.
 type FXVideoInputNode interface {
 	fxnode.FXNode
+	// SetMode sets the playback mode (Loop, Stretch, Clamp, None).
 	SetMode(mode FXVideoPlaybackMode)
-	SetTargetDuration(d time.Duration) // For Stretch mode
-	SetTime(t time.Duration)           // Called by fxAnimation loop
+	// SetTargetDuration sets the target duration for Stretch mode.
+	// The video will be sped up or slowed down to match this duration.
+	SetTargetDuration(d time.Duration)
+	// SetTime sets the current playback time.
+	// This is typically called by the animation loop.
+	SetTime(t time.Duration)
 }
 
 // fxVideoInputNode implements FXVideoInputNode.
@@ -46,15 +51,18 @@ type fxVideoInputNode struct {
 
 // NewFXVideoInputNode creates a new video fxnode.
 func NewFXVideoInputNode(ctx fxcontext.FXContext, path string) (FXVideoInputNode, error) {
+	// Initialize the video decoder.
 	decoder, err := NewFXStreamDecoder(path)
 	if err != nil {
 		return nil, err
 	}
 
 	info := decoder.Info()
+	// Create a texture to store video frames.
 	tex := fxcore.NewFXTexture(info.Width, info.Height)
 	// if err != nil { ... } // NewTexture doesn't return error currently
 
+	// Create a base node.
 	base, err := fxnode.NewFXBaseNode(ctx, info.Width, info.Height)
 	if err != nil {
 		decoder.Close()
@@ -87,33 +95,40 @@ func (n *fxVideoInputNode) Process(ctx fxcontext.FXContext) error {
 	videoDuration := info.Duration
 	var videoTime time.Duration
 
+	// Calculate the video time based on the playback mode.
 	switch n.mode {
 	case FXModeLoop:
+		// Loop the video if the current time exceeds duration.
 		if videoDuration > 0 {
 			videoTime = time.Duration(int64(n.currentTime) % int64(videoDuration))
 		}
 	case FXModeStretch:
+		// Stretch the video to fit the target duration.
 		if n.targetDuration > 0 {
 			videoTime = time.Duration(float64(n.currentTime) * float64(videoDuration) / float64(n.targetDuration))
 		} else {
 			videoTime = n.currentTime
 		}
 	case FXModeClamp:
+		// Clamp the video to the last frame if current time exceeds duration.
 		if n.currentTime > videoDuration {
 			videoTime = videoDuration
 		} else {
 			videoTime = n.currentTime
 		}
 	case FXModeNone:
+		// Play normally, potentially going past the end (handling EOF later).
 		videoTime = n.currentTime
 	}
 
 	// Seek decoder to the calculated time
+	// This is efficient because the decoder handles seeking internally.
 	if err := n.decoder.Seek(videoTime); err != nil {
 		return err
 	}
 
 	// Read frame
+	// Decode the frame into the image buffer.
 	if err := n.decoder.ReadFrame(n.img); err != nil {
 		if err.Error() == "EOF" && n.mode == FXModeLoop {
 			// If we hit EOF in loop mode, try seeking to 0 and reading again
@@ -133,6 +148,7 @@ func (n *fxVideoInputNode) Process(ctx fxcontext.FXContext) error {
 	}
 
 	// Upload to texture
+	// Upload the decoded frame to the GPU texture.
 	n.texture.Upload(n.img)
 
 	return nil

@@ -11,8 +11,8 @@ import (
 type FXShaderType uint32
 
 const (
-	FXVertexShader   FXShaderType = gles2.VERTEX_SHADER
-	FXFragmentShader FXShaderType = gles2.FRAGMENT_SHADER
+	FXVertexShader   FXShaderType = gles2.VERTEX_SHADER   // Vertex shader type.
+	FXFragmentShader FXShaderType = gles2.FRAGMENT_SHADER // Fragment shader type.
 )
 
 // FXSimpleVS is a basic vertex fxShader that passes through position and fxTexture coordinates.
@@ -63,18 +63,23 @@ type fxShader struct {
 
 // NewFXShader compiles a new fxShader from source code.
 func NewFXShader(source string, shaderType FXShaderType) (FXShader, error) {
+	// Create a shader object.
 	id := gles2.CreateShader(uint32(shaderType))
 
 	// Add default precision for ES 2.0 if not present
+	// Fragment shaders in ES 2.0 require precision qualifiers.
 	if shaderType == FXFragmentShader && !strings.Contains(source, "precision") {
 		source = "precision mediump float;\n" + source
 	}
 
+	// Set the shader source code.
 	cstrs, free := gles2.Strs(source + "\x00")
 	defer free()
 	gles2.ShaderSource(id, 1, cstrs, nil)
+	// Compile the shader.
 	gles2.CompileShader(id)
 
+	// Check compilation status.
 	var status int32
 	gles2.GetShaderiv(id, gles2.COMPILE_STATUS, &status)
 	if status == gles2.FALSE {
@@ -125,23 +130,29 @@ type fxShaderProgram struct {
 
 // NewFXShaderProgram links a vertex and fragment fxShader into a program.
 func NewFXShaderProgram(vertexSource, fragmentSource string) (FXShaderProgram, error) {
+	// Compile vertex shader.
 	vs, err := NewFXShader(vertexSource, FXVertexShader)
 	if err != nil {
 		return nil, fmt.Errorf("vertex fxShader error: %v", err)
 	}
 	defer vs.Release()
 
+	// Compile fragment shader.
 	fs, err := NewFXShader(fragmentSource, FXFragmentShader)
 	if err != nil {
 		return nil, fmt.Errorf("fragment fxShader error: %v", err)
 	}
 	defer fs.Release()
 
+	// Create a program object.
 	id := gles2.CreateProgram()
+	// Attach shaders to the program.
 	gles2.AttachShader(id, vs.GetID())
 	gles2.AttachShader(id, fs.GetID())
+	// Link the program.
 	gles2.LinkProgram(id)
 
+	// Check link status.
 	var status int32
 	gles2.GetProgramiv(id, gles2.LINK_STATUS, &status)
 	if status == gles2.FALSE {

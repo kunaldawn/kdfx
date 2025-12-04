@@ -7,6 +7,7 @@ import (
 	"math"
 )
 
+// FXMotionBlurFS is the fragment fxShader for motion blur.
 const FXMotionBlurFS = `
 precision mediump float;
 varying vec2 v_texCoord;
@@ -35,8 +36,10 @@ void main() {
 type FXMotionBlurNode interface {
 	fxnode.FXNode
 	// SetAngle sets the angle of the blur in degrees.
+	// 0 degrees is horizontal to the right, 90 degrees is vertical up.
 	SetAngle(degrees float32)
 	// SetStrength sets the strength/length of the fxblur.
+	// This roughly corresponds to the length of the blur trail in normalized coordinates (0.0 to 1.0).
 	SetStrength(s float32)
 }
 
@@ -56,6 +59,7 @@ func NewFXMotionBlurNode(ctx fxcontext.FXContext, width, height int) (FXMotionBl
 		return nil, err
 	}
 
+	// Compile the shader program with the simple vertex shader and motion blur fragment shader.
 	program, err := fxcore.NewFXShaderProgram(fxcore.FXSimpleVS, FXMotionBlurFS)
 	if err != nil {
 		base.Release()
@@ -69,6 +73,7 @@ func NewFXMotionBlurNode(ctx fxcontext.FXContext, width, height int) (FXMotionBl
 		angle:    0.0,
 		strength: 0.01,
 	}
+	// Initialize velocity uniform.
 	n.updateVelocity()
 
 	return n, nil
@@ -76,17 +81,22 @@ func NewFXMotionBlurNode(ctx fxcontext.FXContext, width, height int) (FXMotionBl
 
 func (n *fxMotionBlurNode) SetAngle(degrees float32) {
 	n.angle = degrees
+	// Update the velocity vector based on the new angle.
 	n.updateVelocity()
 }
 
 func (n *fxMotionBlurNode) SetStrength(s float32) {
 	n.strength = s
+	// Update the velocity vector based on the new strength.
 	n.updateVelocity()
 }
 
 func (n *fxMotionBlurNode) updateVelocity() {
+	// Convert angle to radians.
 	rad := float64(n.angle) * math.Pi / 180.0
+	// Calculate velocity components.
 	vx := float32(math.Cos(rad)) * n.strength
 	vy := float32(math.Sin(rad)) * n.strength
+	// Set the velocity uniform.
 	n.SetUniform("u_velocity", []float32{vx, vy})
 }

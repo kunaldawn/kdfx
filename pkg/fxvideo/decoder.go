@@ -1,3 +1,4 @@
+// Package fxvideo provides video decoding, encoding, and processing capabilities for the kdfx library.
 package fxvideo
 
 import (
@@ -15,8 +16,11 @@ type FXStreamDecoder interface {
 	// If t > current, reads and discards frames.
 	Seek(t time.Duration) error
 	// ReadFrame reads the next frame into the provided image buffer.
+	// The image buffer must match the video resolution.
 	ReadFrame(img *image.RGBA) error
+	// Close stops the decoding process and releases resources.
 	Close() error
+	// Info returns metadata about the video stream.
 	Info() FXVideoInfo
 }
 
@@ -36,6 +40,7 @@ type fxFfmpegStreamDecoder struct {
 
 // NewFXStreamDecoder creates a new StreamDecoder for the given video file.
 func NewFXStreamDecoder(path string) (FXStreamDecoder, error) {
+	// Probe the video to get metadata like resolution and FPS.
 	info, err := FXProbeVideo(path)
 	if err != nil {
 		return nil, err
@@ -46,6 +51,7 @@ func NewFXStreamDecoder(path string) (FXStreamDecoder, error) {
 		info: *info,
 	}
 
+	// Start ffmpeg process at the beginning.
 	if err := decoder.startFFmpeg(0); err != nil {
 		return nil, err
 	}
@@ -54,6 +60,7 @@ func NewFXStreamDecoder(path string) (FXStreamDecoder, error) {
 }
 
 func (d *fxFfmpegStreamDecoder) startFFmpeg(startTime time.Duration) error {
+	// Close existing process if any.
 	if d.cmd != nil {
 		d.Close()
 	}
@@ -63,6 +70,7 @@ func (d *fxFfmpegStreamDecoder) startFFmpeg(startTime time.Duration) error {
 	// -ss after -i is slower (decoding) but accurate.
 	// For exact frame, we might need accurate seeking.
 	// Let's try -ss before -i for now, it's usually good enough for playback.
+	// We output rawvideo in RGBA format to stdout.
 	args := []string{
 		"-ss", fmt.Sprintf("%f", startTime.Seconds()),
 		"-i", d.path,
@@ -100,6 +108,7 @@ func (d *fxFfmpegStreamDecoder) Seek(t time.Duration) error {
 	}
 
 	// Skip frames
+	// Read and discard frames until we reach the target time.
 	framesToSkip := int(delta.Seconds() * float64(d.info.FPS))
 	if framesToSkip > 0 {
 		frameSize := d.info.Width * d.info.Height * 4
@@ -121,6 +130,7 @@ func (d *fxFfmpegStreamDecoder) ReadFrame(img *image.RGBA) error {
 		return fmt.Errorf("image dimension mismatch: expected %dx%d, got %dx%d", d.info.Width, d.info.Height, img.Rect.Dx(), img.Rect.Dy())
 	}
 
+	// Read exactly one frame of raw RGBA data from ffmpeg stdout.
 	_, err := io.ReadFull(d.stdout, img.Pix)
 	if err != nil {
 		return err

@@ -1,3 +1,4 @@
+// Package fxblend provides blending modes for combining textures.
 package fxblend
 
 import (
@@ -10,21 +11,35 @@ import (
 type FXBlendMode int
 
 const (
+	// FXBlendNormal uses the blend color, ignoring the base color.
 	FXBlendNormal FXBlendMode = iota
+	// FXBlendAdd adds the base and blend colors.
 	FXBlendAdd
+	// FXBlendMultiply multiplies the base and blend colors.
 	FXBlendMultiply
+	// FXBlendScreen inverts, multiplies, and inverts again.
 	FXBlendScreen
+	// FXBlendOverlay combines Multiply and Screen modes.
 	FXBlendOverlay
+	// FXBlendDarken selects the darker of the base and blend colors.
 	FXBlendDarken
+	// FXBlendLighten selects the lighter of the base and blend colors.
 	FXBlendLighten
+	// FXBlendColorDodge brightens the base color to reflect the blend color.
 	FXBlendColorDodge
+	// FXBlendColorBurn darkens the base color to reflect the blend color.
 	FXBlendColorBurn
+	// FXBlendHardLight multiplies or screens the colors, depending on the blend color.
 	FXBlendHardLight
+	// FXBlendSoftLight darkens or lightens the colors, depending on the blend color.
 	FXBlendSoftLight
+	// FXBlendDifference subtracts the darker color from the lighter color.
 	FXBlendDifference
+	// FXBlendExclusion produces an effect similar to Difference but lower contrast.
 	FXBlendExclusion
 )
 
+// FXBlendFS is the fragment fxShader for blending.
 const FXBlendFS = `
 precision mediump float;
 varying vec2 v_texCoord;
@@ -127,12 +142,16 @@ void main() {
 type FXBlendNode interface {
 	fxnode.FXNode
 	// SetFactor sets the opacity of the blend (0.0 to 1.0).
+	// 0.0 means fully base color, 1.0 means fully blended result.
 	SetFactor(f float32)
 	// SetMode sets the blending mode.
+	// See FXBlendMode constants for available modes.
 	SetMode(mode FXBlendMode)
 	// SetInput1 sets the base texture input.
+	// This is the background image.
 	SetInput1(input fxnode.FXInput)
 	// SetInput2 sets the blend texture input.
+	// This is the foreground image to be blended onto the base.
 	SetInput2(input fxnode.FXInput)
 }
 
@@ -143,40 +162,50 @@ type fxBlendNode struct {
 
 // NewFXBlendNode creates a new blend fxnode.
 func NewFXBlendNode(ctx fxcontext.FXContext, width, height int) (FXBlendNode, error) {
+	// Create the base node.
 	base, err := fxnode.NewFXBaseNode(ctx, width, height)
 	if err != nil {
 		return nil, err
 	}
 
+	// Compile the shader program with the simple vertex shader and blend fragment shader.
 	program, err := fxcore.NewFXShaderProgram(fxcore.FXSimpleVS, FXBlendFS)
 	if err != nil {
 		base.Release()
 		return nil, err
 	}
 
+	// Set the shader program.
 	base.SetShaderProgram(program)
 
+	// Create the blend node.
 	n := &fxBlendNode{
 		FXNode: base,
 	}
+	// Set default opacity to 100%.
 	n.SetFactor(1.0)
+	// Set default blend mode to Normal.
 	n.SetMode(FXBlendNormal)
 
 	return n, nil
 }
 
 func (n *fxBlendNode) SetFactor(f float32) {
+	// Set the opacity factor uniform.
 	n.SetUniform("u_factor", f)
 }
 
 func (n *fxBlendNode) SetMode(mode FXBlendMode) {
+	// Set the blend mode uniform.
 	n.SetUniform("u_mode", int(mode))
 }
 
 func (n *fxBlendNode) SetInput1(input fxnode.FXInput) {
+	// Set the base texture input.
 	n.SetInput("u_texture1", input)
 }
 
 func (n *fxBlendNode) SetInput2(input fxnode.FXInput) {
+	// Set the blend texture input.
 	n.SetInput("u_texture2", input)
 }
