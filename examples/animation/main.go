@@ -81,6 +81,18 @@ func main() {
 		brightness := float32(math.Sin(progress * math.Pi * 2))
 		bcNode.SetBrightness(brightness)
 
+		// Animate Transform (Rotate and Scale)
+		rot := float32(progress * math.Pi * 2)
+		bcNode.SetRotation(rot)
+
+		scale := float32(0.8 + 0.2*math.Sin(progress*math.Pi*4))
+		bcNode.SetSize(scale, scale)
+
+		// Animate Position (Orbit)
+		posX := float32(0.2 * math.Cos(progress*math.Pi*2))
+		posY := float32(0.2 * math.Sin(progress*math.Pi*2))
+		bcNode.SetPosition(posX, posY)
+
 		// Animate Motion Blur (rotate angle, pulse strength)
 		angle := float32(progress * 360.0)
 		strength := float32(0.05 * (1.0 + math.Sin(progress*math.Pi*4)))

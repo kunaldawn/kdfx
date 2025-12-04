@@ -20,8 +20,27 @@ const FXSimpleVS = `
 attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
+
+uniform vec2 u_translation;
+uniform vec2 u_scale;
+uniform float u_rotation;
+
 void main() {
-	gl_Position = vec4(a_position, 0.0, 1.0);
+	// Apply scaling
+	vec2 scaledPos = a_position * u_scale;
+
+	// Apply rotation
+	float c = cos(u_rotation);
+	float s = sin(u_rotation);
+	vec2 rotatedPos = vec2(
+		scaledPos.x * c - scaledPos.y * s,
+		scaledPos.x * s + scaledPos.y * c
+	);
+
+	// Apply translation
+	vec2 finalPos = rotatedPos + u_translation;
+
+	gl_Position = vec4(finalPos, 0.0, 1.0);
 	v_texCoord = a_texCoord;
 }
 `

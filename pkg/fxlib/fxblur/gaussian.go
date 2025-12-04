@@ -131,6 +131,11 @@ func (n *fxGaussianBlurNode) Process(ctx fxcontext.FXContext) error {
 	inputTex.BindToUnit(0)
 	n.program.SetUniform1i("u_texture", 0)
 
+	// Set Identity Transform for Pass 1 (Intermediate)
+	n.program.SetUniform2f("u_translation", 0.0, 0.0)
+	n.program.SetUniform2f("u_scale", 1.0, 1.0)
+	n.program.SetUniform1f("u_rotation", 0.0)
+
 	// Draw
 	quad.Draw(posLoc, texLoc)
 
@@ -149,6 +154,9 @@ func (n *fxGaussianBlurNode) Process(ctx fxcontext.FXContext) error {
 	// Bind Temp Texture
 	n.tempFB.GetTexture().BindToUnit(0)
 	n.program.SetUniform1i("u_texture", 0)
+
+	// Set Node Transform for Pass 2 (Final)
+	n.UpdateTransformationUniforms(n.program)
 
 	// Draw
 	quad.Draw(posLoc, texLoc)

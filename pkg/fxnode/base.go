@@ -14,6 +14,11 @@ type fxBaseNode struct {
 	quad     fxcore.FXQuad
 	dirty    bool
 	context  fxcontext.FXContext
+
+	// Transformations
+	posX, posY     float32
+	scaleX, scaleY float32
+	rotation       float32
 }
 
 // NewFXBaseNode initializes a FXBaseNode.
@@ -29,6 +34,8 @@ func NewFXBaseNode(ctx fxcontext.FXContext, width, height int) (FXNode, error) {
 		quad:     fxcore.NewFXQuad(),
 		dirty:    true,
 		context:  ctx,
+		scaleX:   1.0,
+		scaleY:   1.0,
 	}, nil
 }
 
@@ -50,8 +57,31 @@ func (n *fxBaseNode) SetUniform(name string, value interface{}) {
 	n.dirty = true
 }
 
+func (n *fxBaseNode) SetPosition(x, y float32) {
+	n.posX = x
+	n.posY = y
+	n.dirty = true
+}
+
+func (n *fxBaseNode) SetSize(w, h float32) {
+	n.scaleX = w
+	n.scaleY = h
+	n.dirty = true
+}
+
+func (n *fxBaseNode) SetRotation(angle float32) {
+	n.rotation = angle
+	n.dirty = true
+}
+
 func (n *fxBaseNode) SetShaderProgram(program fxcore.FXShaderProgram) {
 	n.program = program
+}
+
+func (n *fxBaseNode) UpdateTransformationUniforms(program fxcore.FXShaderProgram) {
+	program.SetUniform2f("u_translation", n.posX, n.posY)
+	program.SetUniform2f("u_scale", n.scaleX, n.scaleY)
+	program.SetUniform1f("u_rotation", n.rotation)
 }
 
 func (n *fxBaseNode) GetTexture() fxcore.FXTexture {
@@ -137,7 +167,10 @@ func (n *fxBaseNode) Process(ctx fxcontext.FXContext) error {
 			}
 		}
 
-		// 6. Draw
+		// 6. Set Transformation Uniforms
+		n.UpdateTransformationUniforms(n.program)
+
+		// 7. Draw
 		if n.quad != nil {
 			posLoc := n.program.GetAttribLocation("a_position")
 			texLoc := n.program.GetAttribLocation("a_texCoord")
