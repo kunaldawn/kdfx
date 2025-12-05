@@ -8,19 +8,9 @@ import (
 	"os"
 
 	"kdfx/pkg/fxcontext"
-	"kdfx/pkg/fxcore"
+	"kdfx/pkg/fximage"
 	"kdfx/pkg/fxlib/fxcolor"
 )
-
-// InputNode is a simple node that just provides a texture.
-type InputNode struct {
-	Texture fxcore.FXTexture
-}
-
-func (n *InputNode) GetTexture() fxcore.FXTexture            { return n.Texture }
-func (n *InputNode) IsDirty() bool                           { return false }
-func (n *InputNode) Process(ctx fxcontext.FXContext) error   { return nil }
-func (n *InputNode) SetInput(name string, input interface{}) {} // Dummy
 
 func main() {
 	width, height := 800, 600
@@ -43,8 +33,8 @@ func main() {
 	}
 	saveImage("input.png", img)
 
-	// 2. Upload to Texture
-	inputTex, err := fxcore.FXLoadTextureFromFile("input.png")
+	// 2. Create Input Node
+	inputNode, err := fximage.NewFXImageInputFromFile("input.png")
 	if err != nil {
 		panic(err)
 	}
@@ -55,7 +45,6 @@ func main() {
 		panic(err)
 	}
 
-	inputNode := &InputNode{Texture: inputTex}
 	node.SetInput("u_texture", inputNode)
 
 	// 4. Apply Transformations
@@ -68,17 +57,18 @@ func main() {
 	// Rotate 45 degrees
 	node.SetRotation(math.Pi / 4)
 
-	// 5. Process
-	if err := node.Process(ctx); err != nil {
+	// 5. Create Output Node
+	outputNode := fximage.NewFXImageOutput()
+	outputNode.SetInput(node)
+
+	// 6. Process and Save
+	if err := outputNode.Process(ctx); err != nil {
 		panic(err)
 	}
 
-	// 6. Save Output
-	outImg, err := node.GetFramebuffer().GetTexture().Download()
-	if err != nil {
+	if err := outputNode.Save("output.png"); err != nil {
 		panic(err)
 	}
-	saveImage("output.png", outImg)
 }
 
 func saveImage(filename string, img image.Image) {

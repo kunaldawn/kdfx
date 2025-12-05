@@ -9,22 +9,12 @@ import (
 	"time"
 
 	"kdfx/pkg/fxcontext"
-	"kdfx/pkg/fxcore"
+	"kdfx/pkg/fximage"
 	"kdfx/pkg/fxlib/fxblur"
 	"kdfx/pkg/fxlib/fxcolor"
 	"kdfx/pkg/fxvideo"
 	"math"
 )
-
-// InputNode is a simple node that just provides a texture.
-type InputNode struct {
-	Texture fxcore.FXTexture
-}
-
-func (n *InputNode) GetTexture() fxcore.FXTexture            { return n.Texture }
-func (n *InputNode) IsDirty() bool                           { return false }
-func (n *InputNode) Process(ctx fxcontext.FXContext) error   { return nil }
-func (n *InputNode) SetInput(name string, input interface{}) {} // Dummy
 
 func main() {
 	width, height := 512, 512
@@ -49,14 +39,13 @@ func main() {
 	// Save input for reference
 	saveImage("input.png", img)
 
-	// 2. Upload to Texture
-	inputTex, err := fxcore.FXLoadTextureFromFile("input.png")
+	// 2. Create Input Node
+	inputNode, err := fximage.NewFXImageInputFromFile("input.png")
 	if err != nil {
 		panic(err)
 	}
 
 	// 3. Build Graph
-	inputNode := &InputNode{Texture: inputTex}
 
 	// Color Adjustment Node
 	bcNode, err := fxcolor.NewFXColorAdjustmentNode(ctx, width, height)

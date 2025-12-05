@@ -8,19 +8,9 @@ import (
 	"os"
 
 	"kdfx/pkg/fxcontext"
-	"kdfx/pkg/fxcore"
+	"kdfx/pkg/fximage"
 	"kdfx/pkg/fxlib/fxblur"
 )
-
-// InputNode is a simple node that just provides a texture.
-type InputNode struct {
-	Texture fxcore.FXTexture
-}
-
-func (n *InputNode) GetTexture() fxcore.FXTexture            { return n.Texture }
-func (n *InputNode) IsDirty() bool                           { return false }
-func (n *InputNode) Process(ctx fxcontext.FXContext) error   { return nil }
-func (n *InputNode) SetInput(name string, input interface{}) {} // Dummy
 
 func main() {
 	width, height := 512, 512
@@ -49,8 +39,13 @@ func main() {
 		}
 	}
 	saveImage("input.png", img)
-	inputTex, _ := fxcore.FXLoadTextureFromFile("input.png")
-	inputNode := &InputNode{Texture: inputTex}
+	inputNode, err := fximage.NewFXImageInputFromFile("input.png")
+	if err != nil {
+		panic(err)
+	}
+
+	// Output Node
+	outputNode := fximage.NewFXImageOutput()
 
 	// 2. Test Gaussian Blur
 	fmt.Println("Testing Gaussian Blur...")
@@ -60,10 +55,13 @@ func main() {
 	}
 	gNode.SetInput("u_texture", inputNode)
 	gNode.SetRadius(10.0)
-	if err := gNode.Process(ctx); err != nil {
+	outputNode.SetInput(gNode)
+	if err := outputNode.Process(ctx); err != nil {
 		panic(err)
 	}
-	saveImage("output_gaussian.png", mustDownload(gNode.GetTexture()))
+	if err := outputNode.Save("output_gaussian.png"); err != nil {
+		panic(err)
+	}
 
 	// 3. Test Box Blur
 	fmt.Println("Testing Box Blur...")
@@ -73,10 +71,13 @@ func main() {
 	}
 	bNode.SetInput("u_texture", inputNode)
 	bNode.SetRadius(5.0)
-	if err := bNode.Process(ctx); err != nil {
+	outputNode.SetInput(bNode)
+	if err := outputNode.Process(ctx); err != nil {
 		panic(err)
 	}
-	saveImage("output_box.png", mustDownload(bNode.GetTexture()))
+	if err := outputNode.Save("output_box.png"); err != nil {
+		panic(err)
+	}
 
 	// 4. Test Radial Blur
 	fmt.Println("Testing Radial Blur...")
@@ -86,10 +87,13 @@ func main() {
 	}
 	rNode.SetInput("u_texture", inputNode)
 	rNode.SetStrength(0.05)
-	if err := rNode.Process(ctx); err != nil {
+	outputNode.SetInput(rNode)
+	if err := outputNode.Process(ctx); err != nil {
 		panic(err)
 	}
-	saveImage("output_radial.png", mustDownload(rNode.GetTexture()))
+	if err := outputNode.Save("output_radial.png"); err != nil {
+		panic(err)
+	}
 
 	// 5. Test Motion Blur
 	fmt.Println("Testing Motion Blur...")
@@ -100,20 +104,15 @@ func main() {
 	mNode.SetInput("u_texture", inputNode)
 	mNode.SetAngle(45.0)
 	mNode.SetStrength(0.05)
-	if err := mNode.Process(ctx); err != nil {
+	outputNode.SetInput(mNode)
+	if err := outputNode.Process(ctx); err != nil {
 		panic(err)
 	}
-	saveImage("output_motion.png", mustDownload(mNode.GetTexture()))
+	if err := outputNode.Save("output_motion.png"); err != nil {
+		panic(err)
+	}
 
 	fmt.Println("Done! Check output_*.png files.")
-}
-
-func mustDownload(t fxcore.FXTexture) image.Image {
-	img, err := t.Download()
-	if err != nil {
-		panic(err)
-	}
-	return img
 }
 
 func saveImage(filename string, img image.Image) {

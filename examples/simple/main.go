@@ -8,18 +8,10 @@ import (
 	"os"
 
 	"kdfx/pkg/fxcontext"
-	"kdfx/pkg/fxcore"
+	"kdfx/pkg/fximage"
 	"kdfx/pkg/fxlib/fxblur"
 	"kdfx/pkg/fxlib/fxcolor"
 )
-
-// InputNode is a simple node that just provides a texture.
-type InputNode struct {
-	Texture fxcore.FXTexture
-}
-
-func (n *InputNode) GetTexture() fxcore.FXTexture { return n.Texture }
-func (n *InputNode) IsDirty() bool                { return false } // Static input
 
 func main() {
 	width, height := 512, 512
@@ -44,17 +36,15 @@ func main() {
 	// Save input for reference
 	saveImage("input.png", img)
 
-	// 2. Upload to Texture
-	// Load input from file
-	inputTex, err := fxcore.FXLoadTextureFromFile("input.png")
+	// 2. Create Input Node
+	// Load input from file using the new FXImageInput node
+	inputNode, err := fximage.NewFXImageInputFromFile("input.png")
 	if err != nil {
 		panic(err)
 	}
 
 	// 3. Build Graph
 	// Input -> Brightness -> Blur -> Output
-
-	inputNode := &InputNode{Texture: inputTex}
 
 	bcNode, err := fxcolor.NewFXColorAdjustmentNode(ctx, width, height)
 	if err != nil {
@@ -71,21 +61,24 @@ func main() {
 	blurNode.SetInput("u_texture", bcNode)
 	blurNode.SetRadius(10.0)
 
-	// 4. Execute Pipeline
-	// We can just call Process on the last node
-	err = blurNode.Process(ctx)
+	// 4. Create Output Node
+	outputNode := fximage.NewFXImageOutput()
+	outputNode.SetInput(blurNode)
+
+	// 5. Execute Pipeline
+	// We call Process on the output node (which delegates to input) or directly on the last processing node.
+	// Since FXImageOutput.Process delegates, we can use it.
+	err = outputNode.Process(ctx)
 	if err != nil {
 		panic(err)
 	}
 
-	// 5. Download Result
-	outTex := blurNode.GetTexture()
-	outImg, err := outTex.Download()
+	// 6. Save Result
+	err = outputNode.Save("output.png")
 	if err != nil {
 		panic(err)
 	}
 
-	saveImage("output.png", outImg)
 	fmt.Println("Done! Saved output.png")
 }
 

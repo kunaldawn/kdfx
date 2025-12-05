@@ -8,18 +8,9 @@ import (
 	"os"
 
 	"kdfx/pkg/fxcontext"
-	"kdfx/pkg/fxcore"
+	"kdfx/pkg/fximage"
 	"kdfx/pkg/fxlib/fxblend"
 )
-
-// InputNode is a simple node that just provides a texture.
-type InputNode struct {
-	Texture fxcore.FXTexture
-}
-
-func (n *InputNode) GetTexture() fxcore.FXTexture          { return n.Texture }
-func (n *InputNode) IsDirty() bool                         { return false }
-func (n *InputNode) Process(ctx fxcontext.FXContext) error { return nil }
 
 func main() {
 	width, height := 512, 512
@@ -38,8 +29,10 @@ func main() {
 		}
 	}
 	saveImage("base.png", baseImg)
-	baseTex, _ := fxcore.FXLoadTextureFromFile("base.png")
-	baseNode := &InputNode{Texture: baseTex}
+	baseNode, err := fximage.NewFXImageInputFromFile("base.png")
+	if err != nil {
+		panic(err)
+	}
 
 	// 2. Create Blend Image (Vertical Gradient)
 	blendImg := image.NewRGBA(image.Rect(0, 0, width, height))
@@ -50,8 +43,10 @@ func main() {
 		}
 	}
 	saveImage("fxblend.png", blendImg)
-	blendTex, _ := fxcore.FXLoadTextureFromFile("fxblend.png")
-	blendInputNode := &InputNode{Texture: blendTex}
+	blendInputNode, err := fximage.NewFXImageInputFromFile("fxblend.png")
+	if err != nil {
+		panic(err)
+	}
 
 	// 3. Create Blend Node
 	blendNode, err := fxblend.NewFXBlendNode(ctx, width, height)
@@ -72,16 +67,19 @@ func main() {
 		"difference": fxblend.FXBlendDifference,
 	}
 
+	outputNode := fximage.NewFXImageOutput()
+	outputNode.SetInput(blendNode)
+
 	for name, mode := range modes {
 		fmt.Printf("Testing mode: %s\n", name)
 		blendNode.SetMode(mode)
-		if err := blendNode.Process(ctx); err != nil {
+		if err := outputNode.Process(ctx); err != nil {
 			panic(err)
 		}
 
-		outTex := blendNode.GetTexture()
-		outImg, _ := outTex.Download()
-		saveImage(fmt.Sprintf("output_%s.png", name), outImg)
+		if err := outputNode.Save(fmt.Sprintf("output_%s.png", name)); err != nil {
+			panic(err)
+		}
 	}
 
 	fmt.Println("Done! Check output_*.png files.")
